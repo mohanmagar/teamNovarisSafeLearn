@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="images/safelearn-icon.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Certificate of Completion — SafeLearn</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    /* === BASE === */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0D1117;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 20px;
+    }
+    
+    /* === CERTIFICATE CARD === */
+    #cert-card {
+      background: #FFFDF0;
+      color: #0A192F;
+      width: 720px;
+      max-width: 100%;
+      padding: 48px 56px;
+      border-radius: 4px;
+      border: 3px solid #0066FF;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+      text-align: center;
+      position: relative;
+    }
+    
+    .cert-header { margin-bottom: 20px; }
+    .cert-logo { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 8px; }
+    .cert-logo-text h2 { font-size: 22px; font-weight: 800; color: #0A192F; letter-spacing: -0.5px; }
+    .cert-logo-text p { font-size: 12px; color: #6B7280; }
+    
+    .cert-divider {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #0066FF, #00B4FF, #0066FF, transparent);
+      margin: 18px 0;
+      border: none;
+    }
+    
+    .cert-title {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 36px;
+      font-weight: normal;
+      color: #0A192F;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+    }
+    
+    .cert-certifies { font-size: 14px; color: #6B7280; margin-bottom: 10px; }
+    
+    .cert-name {
+      font-size: 34px;
+      font-weight: 800;
+      color: #0A192F;
+      border-bottom: 3px solid #00B4FF;
+      display: inline-block;
+      padding-bottom: 4px;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+    
+    .cert-completed { font-size: 14px; color: #6B7280; margin-bottom: 12px; }
+    
+    .cert-module {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      letter-spacing: -0.3px;
+    }
+    
+    .cert-score-badge {
+      display: inline-block;
+      background: #15803D;
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 6px 20px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+    }
+    
+    .cert-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .cert-detail-item { text-align: center; }
+    .cert-detail-item .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9CA3AF; margin-bottom: 2px; }
+    .cert-detail-item .value { font-size: 14px; font-weight: 700; color: #0A192F; }
+    
+    .cert-sigs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-top: 8px;
+    }
+    .cert-sig { text-align: center; }
+    .cert-sig-line {
+      border-top: 2px solid #0066FF;
+      padding-top: 8px;
+      font-size: 12px;
+      color: #6B7280;
+      font-weight: 600;
+    }
+    
+    .cert-footer {
+      font-size: 10px;
+      color: #9CA3AF;
+      margin-top: 20px;
+    }
+    
+    /* === ACTION BUTTONS === */
+    .cert-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .cert-actions button, .cert-actions a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 22px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-print {
+      background: #1F2937;
+      border: 1px solid #374151;
+      color: #E6EDF3;
+    }
+    .btn-print:hover { border-color: #00D4FF; color: #00D4FF; transform: translateY(-2px); }
+    .btn-download {
+      background: linear-gradient(135deg, #00D4FF 0%, #0284C7 100%);
+      border: none;
+      color: #FFFFFF;
+      box-shadow: 0 4px 18px rgba(0, 212, 255, 0.35);
+    }
+    .btn-download:hover { opacity: 0.95; box-shadow: 0 0 24px rgba(0, 212, 255, 0.5); transform: translateY(-2px); }
+    .btn-back {
+      background: transparent;
+      border: 1px solid #374151;
+      color: #8B949E;
+    }
+    .btn-back:hover { border-color: #8B949E; color: #E6EDF3; transform: translateY(-2px); }
+    
+    /* === PRINT === */
+    @media print {
+      body { background: white; padding: 0; justify-content: flex-start; }
+      .cert-actions { display: none !important; }
+      #cert-card { box-shadow: none; border: 3px solid #0066FF; width: 100%; margin: 0; border-radius: 0; }
+      @page { size: A4 landscape; margin: 10mm; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CERTIFICATE CARD -->
+  <div id="cert-card">
+    <!-- Header -->
+    <div class="cert-header">
+      <div class="cert-logo" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;">
+        <img src="images/novaris-logo.svg" alt="Novaris" style="width:155px; height:auto;">
+        <h2 style="font-size:22px; font-weight:800; color:#0A192F; letter-spacing:-0.5px; margin:0;">SafeLearn</h2>
+      </div>
+    </div>
+    
+    <hr class="cert-divider">
+    
+    <h1 class="cert-title">Certificate of Completion</h1>
+    
+    <p class="cert-certifies">This certifies that</p>
+    <div class="cert-name" id="cert-name">Employee Name</div>
+    <p class="cert-completed">has successfully completed the training module:</p>
+    <div class="cert-module" id="cert-module-name">Module Name</div>
+    
+    <div class="cert-score-badge" id="cert-score-badge">Score: 80% — PASS</div>
+    
+    <hr class="cert-divider">
+    
+    <div class="cert-details">
+      <div class="cert-detail-item">
+        <div class="label">Date Issued</div>
+        <div class="value" id="cert-date">—</div>
+      </div>
+      <div class="cert-detail-item">
+        <div class="label">Certificate ID</div>
+        <div class="value" id="cert-id">—</div>
+      </div>
+      <div class="cert-detail-item">
+        <div class="label">Valid Until</div>
+        <div class="value" id="cert-valid">—</div>
+      </div>
+    </div>
+    
+    <hr class="cert-divider">
+    
+    <div class="cert-sigs">
+      <div class="cert-sig">
+        <div class="cert-sig-line">H&S Training Manager</div>
+      </div>
+      <div class="cert-sig">
+        <div class="cert-sig-line">Compliance Officer</div>
+      </div>
+    </div>
+    
+    <div class="cert-footer" style="margin-top:24px">Issued by SafeLearn</div>
+  </div>
+  
+  <!-- ACTION BUTTONS -->
+  <div class="cert-actions no-print">
+    <button class="btn-print" onclick="window.print()">Print / Save as PDF</button>
+    <button class="btn-download" id="download-btn" onclick="downloadAsImage()">Download as PNG Image</button>
+    <a href="dashboard.html" class="btn-back">← Back to Dashboard</a>
+  </div>
+
+  <script>
+    // === AUTH CHECK ===
+    const userRaw = localStorage.getItem('sl_user');
+    if (!userRaw) { window.location.href = 'index.html'; }
+    const user = JSON.parse(userRaw);
+
+    // === MODULE DATA ===
+    const MODULE_NAMES = {
+      hazard: 'Hazard Perception in the Warehouse',
+      manual: 'Manual Handling & Ergonomic Safety',
+      unsafe: 'Unsafe Acts & Near-Miss Reporting',
+      height: 'Working at Height — Racking & Mezzanine'
+    };
+    const MODULE_COLORS = {
+      hazard: '#CC4400',
+      manual: '#146B21',
+      unsafe: '#8B6914',
+      height: '#8B1A1A'
+    };
+
+    // === READ URL PARAMS ===
+    const params = new URLSearchParams(window.location.search);
+    const moduleId = params.get('module') || 'hazard';
+    const score = params.get('score') || '80';
+
+    // === GENERATE CERT ID ===
+    function generateCertId() {
+      const hex = () => Math.floor(Math.random() * 65536).toString(16).toUpperCase().padStart(4, '0');
+      return 'NSL-' + hex() + '-' + hex();
+    }
+
+    // === FORMAT DATE ===
+    function formatDate(date) {
+      return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    // === POPULATE CERTIFICATE ===
+    const today = new Date();
+    const validUntil = new Date(today);
+    validUntil.setFullYear(validUntil.getFullYear() + 1);
+    const certId = generateCertId();
+
+    document.getElementById('cert-name').textContent = user.name || 'Employee';
+    const modName = MODULE_NAMES[moduleId] || moduleId;
+    document.getElementById('cert-module-name').textContent = modName;
+    document.getElementById('cert-module-name').style.color = MODULE_COLORS[moduleId] || '#0A192F';
+    document.getElementById('cert-score-badge').textContent = 'Score: ' + score + '% — PASS';
+    document.getElementById('cert-date').textContent = formatDate(today);
+    document.getElementById('cert-id').textContent = certId;
+    document.getElementById('cert-valid').textContent = formatDate(validUntil);
+
+    // Save cert to localStorage
+    const results = JSON.parse(localStorage.getItem('sl_results') || '{}');
+    results[moduleId] = { score, certId, date: today.toISOString() };
+    localStorage.setItem('sl_results', JSON.stringify(results));
+
+    // === DOWNLOAD AS PNG ===
+    async function downloadAsImage() {
+      const btn = document.getElementById('download-btn');
+      btn.textContent = 'Generating image…';
+      btn.disabled = true;
+      
+      try {
+        const card = document.getElementById('cert-card');
+        const canvas = await html2canvas(card, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#FFFDF0',
+          logging: false,
+          windowWidth: 720,
+          width: card.scrollWidth,
+          height: card.scrollHeight
+        });
+        
+        const link = document.createElement('a');
+        link.download = 'SafeLearn_Certificate_' + moduleId + '_' + certId + '.png';
+        link.href = canvas.toDataURL('image/png', 1.0);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        btn.textContent = 'Downloaded!';
+        btn.style.background = '#3FB950';
+        btn.style.color = '#fff';
+        setTimeout(() => {
+          btn.textContent = 'Download as PNG Image';
+          btn.style.background = 'linear-gradient(135deg, #00D4FF 0%, #0284C7 100%)';
+          btn.style.color = '#FFFFFF';
+          btn.disabled = false;
+        }, 3000);
+        
+      } catch (err) {
+        console.error('Download error:', err);
+        btn.textContent = 'Failed — try Print instead';
+        btn.style.background = '#F85149';
+        btn.style.color = '#fff';
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

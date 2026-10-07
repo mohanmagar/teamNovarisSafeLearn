@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="images/safelearn-icon.svg">
+  <title>SafeLearn — Warehouse 360° Hazard Hunt</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── Scene wrapper ── */
+    .scene-wrapper {
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      user-select: none;
+      touch-action: pan-y;
+      cursor: grab;
+      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,0.10);
+      background: #0a141f;
+    }
+    .scene-wrapper:active { cursor: grabbing; }
+
+    /* ── Panorama strip (3× wide) ── */
+    .panorama {
+      width: 300%;
+      height: 500px;
+      position: relative;
+      will-change: transform;
+    }
+
+    /* ── Warehouse CSS art ── */
+    .scene-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        /* ceiling */
+        linear-gradient(180deg, #1a2535 0%, #1a2535 10%, #202d40 10.5%, #1b2739 11%, #1b2739 100%);
+      overflow: hidden;
+    }
+
+    /* Ceiling truss beams */
+    .scene-bg::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 56px;
+      background: repeating-linear-gradient(
+        90deg,
+        #2a3a52 0px, #2a3a52 55px,
+        #1b2739 55px, #1b2739 110px
+      );
+    }
+
+    /* Warehouse floor — grid lines + yellow stripes */
+    .scene-bg::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0; height: 130px;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px,
+          transparent 1px, transparent 90px
+        ),
+        linear-gradient(180deg, #16202e 0%, #111828 100%);
+    }
+
+    /* Ceiling lights (warm glow cones) */
+    .ceil-light {
+      position: absolute;
+      top: 52px;
+      width: 90px; height: 22px;
+      background: rgba(255,240,190,0.14);
+      border-radius: 4px;
+      box-shadow: 0 0 60px 20px rgba(255,240,190,0.06), 0 0 120px 40px rgba(255,240,190,0.03);
+    }
+
+    /* Racking / shelving unit */
+    .rack {
+      position: absolute;
+      bottom: 126px;
+      border: 2.5px solid #2e4260;
+      border-bottom: none;
+      background: rgba(15,24,42,0.6);
+    }
+    .rack::before, .rack::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      height: 2.5px;
+      background: #2e4260;
+    }
+    .rack::before { top: 28%; }
+    .rack::after  { top: 58%; }
+
+    /* Shelf load boxes */
+    .shelf-box {
+      position: absolute;
+      border-radius: 2px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* Yellow floor markings */
+    .floor-mark {
+      position: absolute;
+      bottom: 10px;
+      height: 6px;
+      background: repeating-linear-gradient(
+        90deg,
+        rgba(245,200,66,0.45) 0px, rgba(245,200,66,0.45) 22px,
+        transparent 22px, transparent 34px
+      );
+      border-radius: 3px;
+    }
+
+    /* ── HUD ── */
+    .hud {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(180deg, rgba(5,10,21,0.80) 0%, transparent 100%);
+      z-index: 10;
+      pointer-events: none;
+      gap: 12px;
+    }
+    .hud-pill {
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: #fff;
+      background: rgba(0,0,0,0.55);
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(14px);
+    }
+    .hud-timer { color: var(--iris-cyan); }
+    .hud-timer.urgent { color: var(--danger); animation: pulse 0.7s ease-in-out infinite; }
+
+    /* Timer bar */
+    .timer-track {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      z-index: 10;
+    }
+    .timer-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--iris-cyan), var(--iris-purple));
+      transition: width 1s linear, background 1s;
+    }
+    .timer-fill.urgent { background: linear-gradient(90deg, #F87171, #DC2626); }
+
+    /* Compass */
+    .compass {
+      position: absolute;
+      bottom: 16px; right: 16px;
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.60);
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(12px);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column;
+      font-size: 0.58rem; font-weight: 700; color: var(--text-muted);
+      z-index: 10;
+    }
+    .compass-needle {
+      width: 2px; height: 18px;
+      background: linear-gradient(180deg, var(--danger) 50%, var(--iris-cyan) 50%);
+      border-radius: 2px;
+      transition: transform 0.3s ease;
+      margin-bottom: 2px;
+    }
+
+    /* Drag hint */
+    .drag-hint {
+      position: absolute;
+      bottom: 18px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.65);
+      padding: 7px 16px;
+      border-radius: 20px;
+      font-size: 0.78rem; color: var(--text-muted);
+      border: 1px solid rgba(255,255,255,0.10);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+      white-space: nowrap;
+      animation: fadeHint 5s 1.5s forwards;
+    }
+    @keyframes fadeHint { 0%{opacity:1} 80%{opacity:1} 100%{opacity:0;pointer-events:none} }
+
+    /* ── Hotspots ── */
+    .hotspot {
+      position: absolute;
+      z-index: 5;
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      border: 2px solid rgba(255,255,255,0.25);
+      background: var(--danger);
+      color: #fff;
+      font-weight: 900;
+      font-size: 1.15rem;
+      animation: hotspot-pulse 2s ease-in-out infinite;
+      transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
+    }
+    .hotspot:hover { transform: scale(1.15); }
+    .hotspot.found {
+      background: var(--success);
+      animation: none;
+      box-shadow: 0 0 20px rgba(52,211,153,0.5);
+    }
+    @keyframes hotspot-pulse {
+      0%   { box-shadow: 0 0 0 0   rgba(248,113,113,0.7), 0 0 0 0   rgba(248,113,113,0.3); }
+      50%  { box-shadow: 0 0 0 14px rgba(248,113,113,0), 0 0 0 26px rgba(248,113,113,0); }
+      100% { box-shadow: 0 0 0 0   rgba(248,113,113,0), 0 0 0 0   rgba(248,113,113,0); }
+    }
+
+    /* ── Info pop-up cards ── */
+    .info-card {
+      display: none;
+      position: absolute;
+      z-index: 20;
+      width: 270px;
+      background: linear-gradient(145deg, rgba(9,18,34,0.97), rgba(5,10,21,0.99));
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.75), 0 0 28px rgba(0,212,255,0.12);
+      backdrop-filter: blur(24px);
+      animation: cardPop 0.22s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .info-card.visible { display: block; }
+    @keyframes cardPop {
+      from { opacity:0; transform: scale(0.8) translateY(10px); }
+      to   { opacity:1; transform: scale(1) translateY(0); }
+    }
+    .info-card-label {
+      font-size: 0.72rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.09em;
+      color: var(--danger); margin-bottom: 6px;
+    }
+    .info-card-label.ok { color: var(--success); }
+    .info-card h4 { font-size: 0.95rem; margin-bottom: 8px; color: var(--text-primary); }
+    .info-card p { font-size: 0.83rem; line-height: 1.55; color: var(--text-secondary); margin-bottom: 10px; }
+    .info-card-response {
+      font-size: 0.8rem;
+      padding: 9px 12px;
+      border-radius: 8px;
+      background: rgba(52,211,153,0.10);
+      border: 1px solid rgba(52,211,153,0.22);
+      color: var(--success);
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    .info-card-close {
+      display: block; width: 100%;
+      padding: 8px;
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.06);
+      color: var(--text-muted);
+      font-size: 0.8rem; font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      font-family: inherit;
+    }
+    .info-card-close:hover { background: rgba(52,211,153,0.12); color: var(--success); }
+
+    /* ── Controls ── */
+    .scene-controls {
+      display: flex; gap: 10px; margin-top: 14px; align-items: center; flex-wrap: wrap;
+    }
+
+    /* ── Result overlay ── */
+    .result-overlay {
+      display: none;
+      position: absolute; inset: 0;
+      background: rgba(5,10,21,0.92);
+      backdrop-filter: blur(24px);
+      z-index: 30;
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 14px; text-align: center;
+      border-radius: 20px;
+    }
+    .result-overlay.visible { display: flex; animation: fadeIn 0.5s ease-out; }
+    .result-stars { font-size: 2.8rem; letter-spacing: 6px; }
+    .result-title { font-size: 1.7rem; font-weight: 800; }
+    .result-sub   { color: var(--text-muted); font-size: 0.92rem; max-width: 340px; }
+
+    /* Feedback panel */
+    #feedbackPanel { transition: background 0.3s; }
+
+    @media (max-width: 768px) {
+      .panorama { height: 340px; }
+      .container { padding: 24px 5%; }
+    }
+  </style>
+  <link rel="stylesheet" href="css/mobile.css">
+  <script src="js/mobile.js" defer></script>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="dashboard.html" class="navbar-brand">
+      <img src="images/safelearn-icon.svg" alt="SafeLearn logo" style="height:30px;width:auto;">
+      <span>SafeLearn</span>
+    </a>
+    <div class="navbar-nav">
+      <a href="dashboard.html" class="nav-link" style="display:flex;align-items:center;gap:6px;color:var(--iris-cyan);font-weight:600;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+        Back to Dashboard
+      </a>
+      <a href="game.html" class="nav-link">Games</a>
+      <button onclick="logout()" class="btn btn-secondary" style="padding:6px 14px;">Logout</button>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+      <div>
+        <h1 style="display:flex;align-items:center;gap:12px;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--iris-cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          Warehouse 360° Hazard Hunt
+        </h1>
+        <p class="text-muted" style="margin-top: 8px;">
+          Drag or use arrow keys / "Look Left" &amp; "Look Right" buttons to pan across the full warehouse. Find all
+          <strong style="color:var(--danger);">3 hazards</strong> before time expires!
+        </p>
+      </div>
+      <a href="dashboard.html" class="btn btn-secondary" style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+        Back to Dashboard
+      </a>
+    </div>
+
+    <!-- Scene -->
+    <div class="scene-wrapper" id="sceneWrapper">
+
+      <!-- HUD -->
+      <div class="hud">
+        <div class="hud-pill" id="hudScore">0 of 3 hazards found</div>
+        <div class="hud-pill hud-timer" id="hudTimer">60s</div>
+      </div>
+
+      <!-- Timer bar -->
+      <div class="timer-track">
+        <div class="timer-fill" id="timerFill" style="width:100%;"></div>
+      </div>
+
+      <!-- Panorama -->
+      <div class="panorama" id="panorama">
+
+        <!-- Background -->
+        <div class="scene-bg" style="width:100%;position:absolute;inset:0;"></div>
+
+        <!-- Ceiling lights -->
+        <div class="ceil-light" style="left:7%;"></div>
+        <div class="ceil-light" style="left:24%;"></div>
+        <div class="ceil-light" style="left:42%;"></div>
+        <div class="ceil-light" style="left:60%;"></div>
+        <div class="ceil-light" style="left:78%;"></div>
+        <div class="ceil-light" style="left:91%;"></div>
+
+        <!-- Racking units -->
+        <div class="rack" style="left:3%; width:160px; height:250px;"></div>
+        <div class="rack" style="left:14%; width:180px; height:290px;"></div>
+        <div class="rack" style="left:27%; width:140px; height:220px;"></div>
+        <div class="rack" style="left:39%; width:170px; height:270px;"></div>
+        <div class="rack" style="left:51%; width:155px; height:240px;"></div>
+        <div class="rack" style="left:63%; width:190px; height:260px;"></div>
+        <div class="rack" style="left:76%; width:160px; height:230px;"></div>
+        <div class="rack" style="left:88%; width:175px; height:280px;"></div>
+
+        <!-- Shelf load boxes (visual dressing) -->
+        <div class="shelf-box" style="left:4%;  bottom:280px;width:48px;height:30px;background:#5a4a2a;"></div>
+        <div class="shelf-box" style="left:7%;  bottom:280px;width:36px;height:30px;background:#3a2e1a;"></div>
+        <div class="shelf-box" style="left:16%; bottom:320px;width:55px;height:28px;background:#4a5a3a;"></div>
+        <div class="shelf-box" style="left:41%; bottom:300px;width:50px;height:32px;background:#5a3a4a;"></div>
+        <div class="shelf-box" style="left:64%; bottom:290px;width:60px;height:30px;background:#3a4a5a;"></div>
+        <div class="shelf-box" style="left:68%; bottom:290px;width:40px;height:26px;background:#4a3a5a;"></div>
+        <div class="shelf-box" style="left:89%; bottom:310px;width:52px;height:28px;background:#5a4a3a;"></div>
+
+        <!-- Forklift (CSS art, right zone) -->
+        <div style="position:absolute;bottom:126px;left:72%;pointer-events:none;">
+          <div style="width:72px;height:52px;background:#F5C842;border-radius:4px 4px 0 0;position:relative;">
+            <div style="width:24px;height:24px;border-radius:50%;background:#1b2739;position:absolute;bottom:-8px;left:6px;border:3px solid #3a4d66;"></div>
+            <div style="width:24px;height:24px;border-radius:50%;background:#1b2739;position:absolute;bottom:-8px;right:6px;border:3px solid #3a4d66;"></div>
+          </div>
+          <div style="width:10px;height:80px;background:#D4A500;position:absolute;left:10px;bottom:48px;border-radius:2px;"></div>
+          <div style="width:44px;height:5px;background:#D4A500;position:absolute;left:10px;bottom:122px;border-radius:1px;"></div>
+        </div>
+
+        <!-- Yellow floor safety markings -->
+        <div class="floor-mark" style="left:20%; width:140px;"></div>
+        <div class="floor-mark" style="left:50%; width:100px;"></div>
+        <div class="floor-mark" style="left:78%; width:120px;"></div>
+
+        <!-- ========== HAZARD 1: Wet floor, no sign — left zone ~17% ========== -->
+        <button class="hotspot" id="hs1" style="left:17%;top:66%;" onclick="triggerHazard(1)">!</button>
+        <!-- Puddle -->
+        <div style="position:absolute;left:calc(17% - 28px);top:72%;width:85px;height:18px;
+             background:rgba(100,180,255,0.18);border-radius:50%;pointer-events:none;
+             box-shadow:0 0 12px 4px rgba(100,180,255,0.08);"></div>
+
+        <!-- Info card 1 -->
+        <div class="info-card" id="ic1" style="left:calc(17% + 32px); top:28%;">
+          <div class="info-card-label" id="ic1-label">Hazard Detected</div>
+          <h4>Wet Floor — No Warning Sign</h4>
+          <p>A liquid spill with no caution sign poses a serious slip risk to pedestrians and forklift operators.</p>
+          <div class="info-card-response">
+            Safe response: Isolate the area immediately, place a wet floor sign, and report to the supervisor for clean-up.
+          </div>
+          <button class="info-card-close" onclick="closeCard(1)">Understood — mark as handled</button>
+        </div>
+
+        <!-- ========== HAZARD 2: Unsecured load, racking — mid zone ~52% ========== -->
+        <button class="hotspot" id="hs2" style="left:52%;top:28%;" onclick="triggerHazard(2)">!</button>
+        <!-- Teetering box -->
+        <div style="position:absolute;left:calc(52% + 8px);top:33%;width:44px;height:32px;
+             background:#8B5E14;border:1px solid rgba(255,255,255,0.15);transform:rotate(9deg);
+             pointer-events:none;border-radius:2px;"></div>
+
+        <!-- Info card 2 -->
+        <div class="info-card" id="ic2" style="left:calc(52% + 32px); top:5%;">
+          <div class="info-card-label" id="ic2-label">Hazard Detected</div>
+          <h4>Unsecured Load on Racking</h4>
+          <p>A pallet is overhanging the shelf edge and could fall on passing staff or equipment below.</p>
+          <div class="info-card-response">
+            Safe response: Stop access to the aisle. Do not re-secure alone — notify the racking team immediately.
+          </div>
+          <button class="info-card-close" onclick="closeCard(2)">Understood — mark as handled</button>
+        </div>
+
+        <!-- ========== HAZARD 3: Blocked fire exit — right zone ~78% ========== -->
+        <button class="hotspot" id="hs3" style="left:78%;top:48%;" onclick="triggerHazard(3)">!</button>
+        <!-- Exit door -->
+        <div style="position:absolute;left:calc(78% + 14px);top:50%;pointer-events:none;">
+          <div style="width:58px;height:76px;background:#1a2535;border:2px solid #2e4260;border-radius:2px 2px 0 0;position:relative;">
+            <div style="position:absolute;top:5px;left:5px;right:5px;height:14px;background:rgba(52,211,153,0.15);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:#34D399;letter-spacing:1px;">EXIT</div>
+          </div>
+          <!-- Blocking boxes -->
+          <div style="position:absolute;bottom:-2px;left:-14px;width:34px;height:28px;background:#5a4a2a;border:1px solid rgba(255,255,255,0.12);border-radius:1px;"></div>
+          <div style="position:absolute;bottom:-2px;left:16px;width:28px;height:22px;background:#4a3a1a;border:1px solid rgba(255,255,255,0.12);border-radius:1px;"></div>
+          <div style="position:absolute;bottom:20px;left:-12px;width:26px;height:22px;background:#3a2e14;border:1px solid rgba(255,255,255,0.10);border-radius:1px;"></div>
+        </div>
+
+        <!-- Info card 3 -->
+        <div class="info-card" id="ic3" style="left:calc(78% - 280px); top:16%;">
+          <div class="info-card-label" id="ic3-label">Hazard Detected</div>
+          <h4>Blocked Emergency Exit</h4>
+          <p>Pallets stored in front of a fire exit are a serious legal violation and life-safety risk under fire regulations.</p>
+          <div class="info-card-response">
+            Safe response: Clear the obstruction immediately. Record who placed items there. Report to H&amp;S manager.
+          </div>
+          <button class="info-card-close" onclick="closeCard(3)">Understood — mark as handled</button>
+        </div>
+
+      </div><!-- /panorama -->
+
+      <!-- Result overlay — OUTSIDE panorama so translateX doesn't move it -->
+      <div class="result-overlay" id="resultOverlay">
+        <div class="result-stars" id="resultStars"></div>
+        <div class="result-title" id="resultTitle"></div>
+        <div class="result-sub"   id="resultSub"></div>
+        <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;justify-content:center;">
+          <a id="resultAction" href="game.html" class="btn btn-primary">Continue to Training Games</a>
+          <a id="resultRetry"  href="scene360.html" class="btn btn-secondary" style="display:none;">Try Again</a>
+          <a href="dashboard.html" class="btn btn-secondary" style="display:inline-flex;align-items:center;gap:6px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+            Back to Dashboard
+          </a>
+        </div>
+      </div>
+
+      <!-- Compass -->
+      <div class="compass">
+        <div class="compass-needle" id="compassNeedle"></div>
+        N
+      </div>
+
+      <!-- Drag hint -->
+      <div class="drag-hint">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:middle;"><path d="m15 18-6-6 6-6"/></svg>
+        Drag to look around
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:middle;"><path d="m9 18 6-6-6-6"/></svg>
+      </div>
+
+    </div><!-- /scene-wrapper -->
+
+    <!-- Controls -->
+    <div class="scene-controls">
+      <button class="btn btn-secondary" onclick="panBy(-1)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+        Look Left
+      </button>
+      <button class="btn btn-secondary" onclick="panBy(1)">
+        Look Right
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+      <span class="text-muted" id="viewLabel" style="font-size:0.82rem; margin-left:auto;">Arrow keys also work</span>
+    </div>
+
+    <!-- Feedback panel -->
+    <div class="glass-card" id="feedbackPanel" style="margin-top:16px; min-height:70px; display:flex; align-items:center;">
+      <p id="feedbackText" style="color:var(--text-muted); font-size:0.92rem;">
+        Click a pulsing
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--danger);color:#fff;font-weight:800;font-size:0.75rem;vertical-align:middle;">!</span>
+        marker to identify the hazard and learn the correct safe response.
+      </p>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    checkAuth();
+
+    // ── State ──
+    const TOTAL  = 3;
+    const TLIMIT = 60;
+    let found    = 0;
+    let panX     = 0;
+    let dragStartX = null;
+    let dragStartPan = 0;
+    let timeLeft = TLIMIT;
+    let timerID  = null;
+    let over     = false;
+
+    const panorama = document.getElementById('panorama');
+    const hudScore = document.getElementById('hudScore');
+    const hudTimer = document.getElementById('hudTimer');
+    const timerFill = document.getElementById('timerFill');
+    const feedbackText = document.getElementById('feedbackText');
+    const needleEl = document.getElementById('compassNeedle');
+    const viewLabelEl = document.getElementById('viewLabel');
+    const wrapper = document.getElementById('sceneWrapper');
+
+    function getMaxPan() {
+      if (!wrapper || !panorama) return -1400;
+      const diff = panorama.offsetWidth - wrapper.clientWidth;
+      return diff > 0 ? -diff : 0;
+    }
+
+    // ── Timer ──
+    timerID = setInterval(() => {
+      timeLeft--;
+      hudTimer.textContent = timeLeft + 's';
+      timerFill.style.width = (timeLeft / TLIMIT * 100) + '%';
+      if (timeLeft <= 15) {
+        hudTimer.classList.add('urgent');
+        timerFill.classList.add('urgent');
+      }
+      if (timeLeft <= 0) {
+        clearInterval(timerID);
+        if (!over) endGame(false);
+      }
+    }, 1000);
+
+    // ── Panning helpers ──
+    const VIEW_LABELS = ['Far left', 'Left', 'Centre', 'Right', 'Far right'];
+    function applyPan(animate) {
+      panorama.style.transition = animate
+        ? 'transform 0.35s cubic-bezier(0.4,0,0.2,1)'
+        : 'none';
+      panorama.style.transform = `translateX(${panX}px)`;
+      const maxPan = getMaxPan();
+      const t = maxPan !== 0 ? (panX / maxPan) : 0;
+      needleEl.style.transform = `rotate(${t * 180 - 90}deg)`;
+      const idx = Math.round(t * 4);
+      viewLabelEl.textContent = VIEW_LABELS[Math.max(0, Math.min(4, idx))];
+    }
+
+    function panBy(dir) {
+      // dir > 0: look right (decrease panX towards maxPan)
+      // dir < 0: look left (increase panX towards 0)
+      const maxPan = getMaxPan();
+      panX = Math.max(maxPan, Math.min(0, panX - dir * 280));
+      applyPan(true);
+    }
+
+    // Drag
+    wrapper.addEventListener('pointerdown', e => {
+      if (e.target.closest('.hotspot') || e.target.closest('.info-card') || e.target.closest('.result-overlay') || e.target.closest('button')) return;
+      dragStartX   = e.clientX;
+      dragStartPan = panX;
+      wrapper.setPointerCapture(e.pointerId);
+    });
+    wrapper.addEventListener('pointermove', e => {
+      if (dragStartX === null) return;
+      const delta = e.clientX - dragStartX;
+      const maxPan = getMaxPan();
+      panX = Math.max(maxPan, Math.min(0, dragStartPan + delta));
+      applyPan(false);
+    });
+    wrapper.addEventListener('pointerup',  () => { dragStartX = null; });
+    wrapper.addEventListener('pointercancel', () => { dragStartX = null; });
+
+    // Keyboard
+    document.addEventListener('keydown', e => {
+      if (over) return;
+      if (e.key === 'ArrowLeft'  || e.key === 'a' || e.key === 'A') { e.preventDefault(); panBy(-1); }
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { e.preventDefault(); panBy(1); }
+    });
+
+    window.addEventListener('resize', () => {
+      const maxPan = getMaxPan();
+      if (panX < maxPan) {
+        panX = maxPan;
+        applyPan(false);
+      }
+    });
+
+    // ── Hazard interaction ──
+    function triggerHazard(id) {
+      if (over) return;
+      const card = document.getElementById('ic' + id);
+      const hs   = document.getElementById('hs' + id);
+      // If already found, just toggle the card
+      if (hs.classList.contains('found')) {
+        card.classList.toggle('visible');
+        return;
+      }
+      // Close any other open cards first
+      [1,2,3].forEach(i => { if (i !== id) document.getElementById('ic'+i).classList.remove('visible'); });
+      card.classList.add('visible');
+    }
+
+    function closeCard(id) {
+      const card  = document.getElementById('ic'  + id);
+      const hs    = document.getElementById('hs'  + id);
+      const label = document.getElementById('ic'  + id + '-label');
+
+      if (!hs.classList.contains('found')) {
+        // Mark found
+        hs.classList.add('found');
+        hs.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+        hs.onclick = () => { document.getElementById('ic'+id).classList.toggle('visible'); };
+
+        label.textContent = 'Hazard Handled';
+        label.classList.add('ok');
+
+        found++;
+        hudScore.textContent = `${found} of ${TOTAL} hazards found`;
+
+        const msgs = {
+          1: 'Wet floor flagged. Area cordoned off and supervisor notified.',
+          2: 'Unsecured load reported. Racking team dispatched.',
+          3: 'Blocked exit cleared. H&S manager informed.'
+        };
+        const fb = document.getElementById('feedbackPanel');
+        fb.style.background = 'rgba(52,211,153,0.06)';
+        fb.style.borderColor = 'rgba(52,211,153,0.22)';
+        feedbackText.innerHTML =
+          `<span style="color:var(--success);font-weight:700;">Hazard ${found}/${TOTAL} identified —</span> ${msgs[id]}`;
+
+        if (found >= TOTAL) {
+          clearInterval(timerID);
+          setTimeout(() => endGame(true), 450);
+        }
+      }
+      card.classList.remove('visible');
+    }
+
+    // ── End game ──
+    function endGame(won) {
+      over = true;
+      const overlay = document.getElementById('resultOverlay');
+      const stars   = document.getElementById('resultStars');
+      const title   = document.getElementById('resultTitle');
+      const sub     = document.getElementById('resultSub');
+      const retry   = document.getElementById('resultRetry');
+      const action  = document.getElementById('resultAction');
+
+      if (won) {
+        const pct = timeLeft / TLIMIT;
+        const s   = pct > 0.6 ? 3 : pct > 0.3 ? 2 : 1;
+        stars.textContent = '★'.repeat(s) + '☆'.repeat(3 - s);
+        stars.style.color = s === 3 ? '#00D4FF' : s === 2 ? '#38BDF8' : '#94A3B8';
+        title.textContent = 'Scene Complete!';
+        sub.textContent   = `All ${TOTAL} hazards identified with ${timeLeft}s remaining. Excellent observation.`;
+        showToast('Warehouse 360° scene complete — great work!', 'success');
+      } else {
+        stars.textContent = `${found} / ${TOTAL}`;
+        stars.style.fontSize = '1.8rem';
+        title.textContent = "Time's Up!";
+        sub.textContent   = `You found ${found} of ${TOTAL} hazards. Pan around and try again.`;
+        action.style.display = 'none';
+        retry.style.display  = 'inline-flex';
+      }
+      overlay.classList.add('visible');
+    }
+  </script>
+</body>
+</html>

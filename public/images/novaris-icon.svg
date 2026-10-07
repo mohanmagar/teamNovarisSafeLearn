@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 130" width="100%" height="100%">
+  <defs>
+    <linearGradient id="novarisBlueIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0066FF" />
+      <stop offset="100%" stop-color="#00B4FF" />
+    </linearGradient>
+    <filter id="iconGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0080FF" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <g transform="translate(5, 5)" filter="url(#iconGlow)">
+    <!-- Outer Hexagon Frame -->
+    <path d="M 60 10 
+             L 105 35 
+             L 105 85 
+             L 60 110 
+             L 15 85 
+             L 15 35 Z" 
+          fill="none" 
+          stroke="url(#novarisBlueIcon)" 
+          stroke-width="7" 
+          stroke-linejoin="round" 
+          stroke-linecap="round"/>
+
+    <!-- Left vertical bar of N -->
+    <path d="M 36 34 L 36 86" 
+          stroke="url(#novarisBlueIcon)" 
+          stroke-width="12" 
+          stroke-linecap="round"/>
+
+    <!-- Diagonal stroke connecting to right upward spear -->
+    <path d="M 36 40 L 78 86 L 78 48" 
+          stroke="url(#novarisBlueIcon)" 
+          stroke-width="11" 
+          stroke-linejoin="round" 
+          stroke-linecap="round"/>
+
+    <!-- Dynamic forward arrow / checkmark extending out of hexagon -->
+    <path d="M 24 74 L 62 42 L 112 12" 
+          stroke="url(#novarisBlueIcon)" 
+          stroke-width="9" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+  </g>
+</svg>

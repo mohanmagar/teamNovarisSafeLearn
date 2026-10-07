@@ -1,0 +1,179 @@
+/* ============================================================
+   SafeLearn — Mobile / touch layer
+   Loaded AFTER each page's own CSS so it can override it.
+   Desktop (>= 768px) is untouched except for .nav-toggle being hidden.
+   ============================================================ */
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+img, video, canvas { max-width: 100%; }
+img { height: auto; }
+body { min-height: 100vh; min-height: 100dvh; overflow-x: hidden; }
+
+/* Hamburger button (hidden on desktop) */
+.nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-left: auto;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(148, 223, 255, 0.25);
+  border-radius: 10px;
+  color: #F0F9FF;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-toggle span,
+.nav-toggle span::before,
+.nav-toggle span::after {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 2px;
+  position: relative;
+  transition: transform .2s, opacity .2s, background .2s;
+}
+.nav-toggle span::before,
+.nav-toggle span::after { content: ""; position: absolute; left: 0; }
+.nav-toggle span::before { top: -6px; }
+.nav-toggle span::after  { top: 6px; }
+.navbar.nav-open .nav-toggle span { background: transparent; }
+.navbar.nav-open .nav-toggle span::before { top: 0; transform: rotate(45deg); }
+.navbar.nav-open .nav-toggle span::after  { top: 0; transform: rotate(-45deg); }
+
+/* Touch devices: no sticky hover, comfortable tap targets, no double-tap zoom delay */
+@media (hover: none) {
+  .game-card:hover, .scenario-card:hover, .hotspot:hover, .btc-opt:hover { transform: none; }
+}
+button, a, .btn, .scenario-card, .hazard-zone, .hotspot { touch-action: manipulation; }
+
+/* ============================================================
+   PHONES & SMALL TABLETS  (< 768px)
+   ============================================================ */
+@media (max-width: 767px) {
+
+  /* ---- Navbar -> brand + hamburger, links collapse into a panel ---- */
+  .navbar {
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    align-items: center !important;
+    justify-content: space-between;
+    gap: 0 !important;
+    padding: 10px 4% !important;
+  }
+  .nav-toggle { display: inline-flex; }
+  .navbar .nav-collapse {
+    display: none !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    flex-basis: 100%;
+    width: 100%;
+    gap: 2px !important;
+    padding: 10px 0 4px;
+    margin-top: 10px;
+    border-top: 1px solid rgba(148, 223, 255, 0.15);
+  }
+  .navbar.nav-open .nav-collapse { display: flex !important; }
+  .navbar .nav-collapse > a,
+  .navbar .nav-collapse .nav-link {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 6px;
+    font-size: 1rem !important;
+  }
+  .navbar .nav-collapse .nav-user,
+  .navbar .nav-collapse > div {
+    flex-wrap: wrap;
+    gap: 10px !important;
+    padding-top: 8px;
+  }
+  .navbar-brand span, .nav-brand span { font-size: 1rem !important; }
+
+  /* ---- General layout ---- */
+  .container { padding: 18px 4% !important; }
+  .glass-card { padding: 16px; }
+  h1 { font-size: 1.6rem; }
+  h2 { font-size: 1.25rem; }
+
+  /* Comfortable tap targets + stop iOS zooming into inputs */
+  .btn, button { min-height: 44px; }
+  input, select, textarea { font-size: 16px !important; min-height: 44px; }
+
+  /* Toasts sit inside the screen */
+  .toast-container { left: 12px; right: 12px; bottom: 12px; }
+  .toast { max-width: none; }
+
+  /* Wide content scrolls inside itself instead of widening the page */
+  table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* ---- Game hub (game.html) ---- */
+  .game-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+  .hero { margin-bottom: 28px !important; }
+  .hero h1 { font-size: 28px !important; }
+  #modal-inner { margin: 56px 10px 24px !important; }
+  #modal-title { font-size: 22px !important; margin-bottom: 14px !important; }
+  #modal-game-content { padding: 14px !important; }
+  #xp-award-overlay { font-size: 32px !important; padding: 0 16px; text-align: center; }
+  .btn-close-modal { top: 10px !important; right: 10px !important; width: 44px !important; height: 44px !important; }
+
+  /* Hazard Hunt: shorter scene, smaller racks, bigger tap zones */
+  #g1-scene { height: 300px !important; }
+  .scene-rack { width: 70px !important; }
+  .hazard-zone { min-width: 44px; min-height: 44px; }
+  #g1-popup { max-width: 150px !important; }
+
+  /* Safe or Unsafe: deck on top, SAFE / UNSAFE pinned to the bottom of the screen */
+  #g2-layout { flex-direction: column !important; }
+  #g2-deck { max-height: 40vh !important; max-height: 40dvh !important; }
+  #g2-zones-wrap {
+    flex-direction: row !important;
+    width: 100%;
+    position: sticky;
+    bottom: 8px;
+    z-index: 5;
+  }
+  #g2-zones-wrap .drop-zone { flex: 1; min-height: 84px; padding: 10px; }
+  .zone-icon { font-size: 28px !important; }
+  .zone-label { font-size: 14px !important; }
+
+  /* ---- Admin ---- */
+  .bar-label { width: 84px !important; font-size: 0.75rem !important; }
+  .modal-box { padding: 20px !important; max-width: 100% !important; }
+  .modal-overlay { padding: 10px !important; align-items: flex-start !important; overflow-y: auto; }
+
+  /* ---- 360 scene: centre each pop-up on its hotspot so it can't run off the strip ---- */
+  .info-card { width: min(240px, calc(100vw - 56px)) !important; transform: translateX(-50%); }
+  #ic1 { left: 17% !important; }
+  #ic2 { left: 52% !important; }
+  #ic3 { left: 78% !important; }
+}
+
+/* Very small phones: stack 2-column form/detail grids */
+@media (max-width: 520px) {
+  [style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
+  .grid-4 { grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
+  .stat-card .value { font-size: 1.6rem !important; }
+}
+
+/* Selected card in Safe-or-Unsafe (tap mode) — visible on every screen size */
+.scenario-card { cursor: pointer; }
+.scenario-card.selected {
+  border-color: #00D4FF !important;
+  background: rgba(0, 212, 255, 0.16) !important;
+  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.45);
+}
+
+/* Landscape phones: don't let the navbar eat the screen */
+@media (max-height: 480px) and (orientation: landscape) {
+  .navbar { position: static; }
+}
+
+/* Respect "reduce motion" and save battery on phones */
+@media (prefers-reduced-motion: reduce), (max-width: 767px) {
+  body::before { animation: none !important; }
+  .progress-yellow, .progress-aqua { animation: none !important; }
+}

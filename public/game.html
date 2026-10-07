@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="images/safelearn-icon.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Training Games — SafeLearn</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* Design System — Crystal Water Clean */
+    :root {
+      --bg: #061122;
+      --card-bg: rgba(255, 255, 255, 0.055);
+      --accent: #00D4FF;
+      --accent-hover: rgba(0, 212, 255, 0.15);
+      --accent-orange: #0284C7;
+      --success: #10B981;
+      --danger: #F43F5E;
+      --warning: #38BDF8;
+      --text-primary: #E6EDF3;
+      --text-muted: #8B949E;
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --border-radius-card: 16px;
+      --border-radius-btn: 10px;
+      --box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* Navbar */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 32px;
+      background: rgba(13, 17, 23, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--glass-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .nav-brand h1 {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    
+    .nav-user {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-user span {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    
+    .btn-logout {
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      color: var(--text-primary);
+      padding: 8px 16px;
+      border-radius: var(--border-radius-btn);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-logout:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    
+    .hero h1 {
+      font-size: 40px;
+      font-weight: 900;
+      margin-bottom: 12px;
+      letter-spacing: -1px;
+    }
+    
+    .hero p {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Game Grid */
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .game-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius-card);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    }
+    
+    .game-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--box-shadow);
+      border-color: rgba(255, 215, 0, 0.3);
+    }
+
+    .game-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+
+    .game-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .game-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 24px;
+      flex-grow: 1;
+    }
+
+    .game-meta {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .chip {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .chip-xp {
+      background: rgba(63, 185, 80, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+    }
+
+    .chip-diff {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      border: 1px solid var(--glass-border);
+    }
+
+    .btn-play {
+      width: 100%;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: var(--border-radius-btn);
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-play:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+      filter: brightness(1.1);
+    }
+    
+    /* MODAL */
+    #game-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.96);
+      z-index: 500;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    
+    .btn-close-modal {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      color: #fff;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 600;
+      transition: all 0.2s;
+    }
+    
+    .btn-close-modal:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.05);
+    }
+
+    #modal-inner {
+      max-width: 800px;
+      margin: 60px auto 40px;
+    }
+
+    #modal-title {
+      font-size: 28px;
+      font-weight: 900;
+      margin-bottom: 24px;
+      color: var(--accent);
+      text-align: center;
+    }
+
+    #modal-game-content {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius-card);
+      padding: 24px;
+      box-shadow: var(--box-shadow);
+      position: relative;
+    }
+
+    /* XP Overlay */
+    #xp-award-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(13, 17, 23, 0.85);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--accent);
+      flex-direction: column;
+      gap: 16px;
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ========================================= */
+    /* GAME 1: Hazard Hunt CSS                   */
+    /* ========================================= */
+    #g1-scene {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      background: linear-gradient(to bottom, #1a2035 0%, #1a2035 60%, #2a1f1a 60%, #2a1f1a 100%);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .scene-floor {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 40%;
+      background: #3d2b1f;
+      border-top: 3px solid #5a4030;
+    }
+    .scene-rack {
+      position: absolute;
+      top: 10%;
+      width: 120px;
+      height: 75%;
+      background: rgba(100,80,60,0.4);
+      border: 2px solid #7a6050;
+    }
+    .rack-left { left: 2%; }
+    .rack-right { right: 2%; }
+    .rack-shelf {
+      height: 33.33%;
+      border-bottom: 3px solid #8B6914;
+      background: rgba(180,140,60,0.15);
+    }
+    .scene-door {
+      position: absolute;
+      right: 15%;
+      top: 30%;
+      width: 50px;
+      height: 45%;
+      background: #1e3a1e;
+      border: 3px solid #3FB950;
+      border-radius: 4px 4px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: #3FB950;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .scene-worker {
+      position: absolute;
+      left: 43%;
+      top: 47%;
+      width: 28px;
+      height: 55px;
+      background: #2563EB;
+      border-radius: 4px;
+    }
+    .scene-worker::before {
+      content: '';
+      position: absolute;
+      top: -22px;
+      left: 4px;
+      width: 20px;
+      height: 20px;
+      background: #FBBF24;
+      border-radius: 50%;
+    }
+    .scene-forklift {
+      position: absolute;
+      left: 52%;
+      bottom: 40%;
+      width: 60px;
+      height: 40px;
+      background: #92400E;
+      border-radius: 4px;
+    }
+    .scene-forklift::before {
+      content: '';
+      position: absolute;
+      left: -20px;
+      top: 5px;
+      width: 20px;
+      height: 6px;
+      background: #D97706;
+    }
+    .hazard-zone {
+      position: absolute;
+      cursor: crosshair;
+      border-radius: 6px;
+      transition: all 0.2s;
+      z-index: 10;
+    }
+    .hazard-zone::after {
+      content: '?';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,215,0,0.0);
+      font-size: 18px;
+      font-weight: 900;
+    }
+    .hazard-zone:hover {
+      background: rgba(255,215,0,0.15);
+      box-shadow: 0 0 20px rgba(255,215,0,0.3);
+    }
+    .hazard-zone.found {
+      background: rgba(248,81,73,0.5);
+      border: 2px solid #F85149;
+      cursor: default;
+    }
+    .hazard-zone.found::after {
+      content: '⚠';
+      color: #F85149;
+    }
+    #g1-timer-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    #g1-timer-fill {
+      height: 100%;
+      width: 100%;
+      background: #3FB950;
+      border-radius: 3px;
+      transition: width 1s linear, background 0.5s;
+    }
+    #g1-status { margin-bottom: 16px; font-weight: 600; font-size: 14px; display:flex; justify-content: space-between; }
+    #g1-popup {
+      position: absolute;
+      background: rgba(6, 17, 34, 0.95);
+      border: 1px solid #00D4FF;
+      box-shadow: 0 0 16px rgba(0, 212, 255, 0.25);
+      border-radius: 10px;
+      padding: 12px 16px;
+      z-index: 20;
+      max-width: 200px;
+      font-size: 13px;
+      color: #E6EDF3;
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+    }
+
+    /* ========================================= */
+    /* GAME 2: Safe or Unsafe CSS                */
+    /* ========================================= */
+    #g2-status { margin-bottom: 16px; font-weight: 600; font-size: 14px; display:flex; justify-content: space-between; }
+    #g2-progress-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    #g2-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: width 0.3s;
+    }
+    #g2-play-area {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    #g2-deck { min-height: 120px; }
+    #g2-zones {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .drop-zone {
+      flex: 1;
+      min-height: 160px;
+      border-radius: 16px;
+      border: 3px dashed;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      padding: 16px;
+    }
+    .safe-zone {
+      border-color: rgba(63,185,80,0.4);
+      background: rgba(63,185,80,0.05);
+    }
+    .safe-zone.drag-over {
+      border-color: #3FB950;
+      background: rgba(63,185,80,0.15);
+      transform: scale(1.03);
+    }
+    .unsafe-zone {
+      border-color: rgba(248,81,73,0.4);
+      background: rgba(248,81,73,0.05);
+    }
+    .unsafe-zone.drag-over {
+      border-color: #F85149;
+      background: rgba(248,81,73,0.15);
+      transform: scale(1.03);
+    }
+    .zone-icon { font-size: 40px; font-weight: 900; }
+    .safe-zone .zone-icon { color: #3FB950; }
+    .unsafe-zone .zone-icon { color: #F85149; }
+    .zone-label { font-size: 16px; font-weight: 800; letter-spacing: 2px; }
+    .safe-zone .zone-label { color: #3FB950; }
+    .unsafe-zone .zone-label { color: #F85149; }
+    
+    .scenario-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: grab;
+      font-size: 14px;
+      color: #E6EDF3;
+      user-select: none;
+      transition: all 0.2s;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    .scenario-card:hover {
+      border-color: #00D4FF;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,212,255,0.2);
+    }
+    .scenario-card:active { cursor: grabbing; }
+    .scenario-card.correct-flash { animation: flash-green 0.5s; }
+    .scenario-card.wrong-flash { animation: flash-red 0.5s; }
+    @keyframes flash-green { 0%,100%{background:rgba(255,255,255,0.06)} 50%{background:rgba(16,185,129,0.3)} }
+    @keyframes flash-red { 0%,100%{background:rgba(255,255,255,0.06)} 50%{background:rgba(244,63,94,0.3)} }
+    
+    .xp-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+      background: rgba(6,17,34,0.95);
+      border: 2px solid #00D4FF;
+      box-shadow: 0 0 30px rgba(0,212,255,0.4);
+      border-radius: 16px;
+      padding: 20px 32px;
+      font-size: 28px;
+      font-weight: 900;
+      color: #00D4FF;
+      z-index: 100;
+      display: none;
+      animation: popup-in 0.3s ease;
+      pointer-events: none;
+    }
+    @keyframes popup-in { from{transform:translate(-50%,-50%) scale(0.5);opacity:0} to{transform:translate(-50%,-50%) scale(1);opacity:1} }
+
+    /* ========================================= */
+    /* GAME 3: Beat the Clock CSS                */
+    /* ========================================= */
+    .btc-opt {
+      display: block;
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: #E6EDF3;
+      font-size: 14px;
+      text-align: left;
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: all 0.15s;
+      font-family: Inter, sans-serif;
+    }
+    .btc-opt:hover {
+      border-color: #00D4FF;
+      background: rgba(0,212,255,0.10);
+    }
+    #g3-timer-ring { display:flex; justify-content:center; margin-bottom:8px; }
+
+  </style>
+  <link rel="stylesheet" href="css/mobile.css">
+  <script src="js/mobile.js" defer></script>
+</head>
+<body>
+  
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="dashboard.html" class="nav-brand" style="display:flex; align-items:center; gap:10px; text-decoration:none;">
+      <img src="images/safelearn-icon.svg" alt="SafeLearn logo" style="height:32px; width:auto;">
+      <span style="font-size:18px; font-weight:800; color:#fff;">SafeLearn</span>
+    </a>
+    <div style="display:flex; align-items:center; gap:18px;">
+      <a href="dashboard.html" style="color:#8B949E; text-decoration:none; font-size:13px; font-weight:600;">← Dashboard</a>
+      <a href="leaderboard.html" style="color:#8B949E; text-decoration:none; font-size:13px; font-weight:600;">🏆 Leaderboard</a>
+      <div class="nav-user">
+        <span id="nav-user-name">Employee Name</span>
+        <a href="#" class="btn-logout" onclick="event.preventDefault(); logout()">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container">
+    <div class="hero">
+      <h1>🎮 Training Games</h1>
+      <p>Test your knowledge, improve your hazard perception, and earn XP with interactive mini-games.</p>
+    </div>
+
+    <div class="game-grid">
+      <!-- GAME 1 -->
+      <div class="game-card">
+        <div class="game-icon">🔍</div>
+        <h2 class="game-title">Hazard Hunt</h2>
+        <p class="game-desc">Spot the hidden safety hazards in a busy warehouse environment before time runs out.</p>
+        <div class="game-meta">
+          <span class="chip chip-diff">Difficulty: Foundation</span>
+          <span class="chip chip-xp">XP: 150</span>
+        </div>
+        <button class="btn-play" onclick="openGame('game1')">Play Now</button>
+      </div>
+
+      <!-- GAME 2 -->
+      <div class="game-card">
+        <div class="game-icon">🃏</div>
+        <h2 class="game-title">Safe or Unsafe?</h2>
+        <p class="game-desc">Drag and drop (or tap a card, then tap SAFE / UNSAFE) to sort the scenarios. Think fast and sort them all!</p>
+        <div class="game-meta">
+          <span class="chip chip-diff">Difficulty: Foundation</span>
+          <span class="chip chip-xp">XP: 100</span>
+        </div>
+        <button class="btn-play" onclick="openGame('game2')">Play Now</button>
+      </div>
+
+      <!-- GAME 3 -->
+      <div class="game-card">
+        <div class="game-icon">⏱️</div>
+        <h2 class="game-title">Beat the Clock</h2>
+        <p class="game-desc">Rapid-fire multiple choice questions. You have 8 seconds per question. Build a streak of 3+ for +5 bonus XP per question!</p>
+        <div class="game-meta">
+          <span class="chip chip-diff">Difficulty: Intermediate</span>
+          <span class="chip chip-xp">XP: 120</span>
+        </div>
+        <button class="btn-play" onclick="openGame('game3')">Play Now</button>
+      </div>
+
+      <!-- GAME 4 -->
+      <div class="game-card">
+        <div class="game-icon">🎭</div>
+        <h2 class="game-title">Scenario Simulator</h2>
+        <p class="game-desc">Make critical decisions in a branching workplace scenario. Your choices have consequences.</p>
+        <div class="game-meta">
+          <span class="chip chip-diff">Difficulty: Advanced</span>
+          <span class="chip chip-xp">XP: 200</span>
+        </div>
+        <button class="btn-play" onclick="openGame('game4')">Play Now</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL OVERLAY -->
+  <div id="game-modal">
+    <button class="btn-close-modal" onclick="closeModal()">×</button>
+    <div id="modal-inner">
+      <div id="modal-title">Game Title</div>
+      <div id="modal-game-content">
+        <!-- Injected via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- XP OVERLAY -->
+  <div id="xp-award-overlay"></div>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    // AUTH CHECK — verified against the server, not just a local flag
+    checkAuth().then(function (user) {
+      if (user) document.getElementById('nav-user-name').textContent = user.name || 'User';
+    });
+
+    var activeTimer = null;
+
+    // OPEN GAME IN MODAL
+    function openGame(gameId) {
+      clearInterval(activeTimer);
+      var modal = document.getElementById('game-modal');
+      var title = document.getElementById('modal-title');
+      var content = document.getElementById('modal-game-content');
+      modal.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+
+      if (gameId === 'game1') {
+        title.textContent = '🔍 Hazard Hunt';
+        content.innerHTML =
+          '<div id="g1-timer-bar"><div id="g1-timer-fill"></div></div>' +
+          '<div style="text-align:center;margin-bottom:12px;font-size:14px;color:#8B949E">Found: <span id="g1-count">0</span>/8 | Time: <span id="g1-time">60</span>s</div>' +
+          '<div id="g1-scene">' +
+            '<div class="scene-floor"></div>' +
+            '<div class="scene-rack rack-left"><div class="rack-shelf"></div><div class="rack-shelf"></div><div class="rack-shelf"></div></div>' +
+            '<div class="scene-rack rack-right"><div class="rack-shelf"></div><div class="rack-shelf"></div><div class="rack-shelf"></div></div>' +
+            '<div class="scene-door">EXIT</div>' +
+            '<div class="scene-worker"></div>' +
+            '<div class="scene-forklift"></div>' +
+            '<div class="hazard-zone" data-name="Wet Floor" data-desc="Slip hazard — no wet floor sign present" style="left:8%;top:70%;width:60px;height:40px"></div>' +
+            '<div class="hazard-zone" data-name="Blocked Exit" data-desc="Emergency exit obstructed by boxes" style="left:82%;top:55%;width:50px;height:50px"></div>' +
+            '<div class="hazard-zone" data-name="Damaged Racking" data-desc="Bent beam — structural failure risk" style="left:5%;top:30%;width:55px;height:30px"></div>' +
+            '<div class="hazard-zone" data-name="Trailing Cable" data-desc="Trip hazard across walkway" style="left:35%;top:78%;width:80px;height:20px"></div>' +
+            '<div class="hazard-zone" data-name="Unsecured Load" data-desc="Box about to fall from top shelf" style="left:70%;top:18%;width:50px;height:40px"></div>' +
+            '<div class="hazard-zone" data-name="No Hi-Vis" data-desc="Worker missing high-visibility vest" style="left:43%;top:48%;width:40px;height:60px"></div>' +
+            '<div class="hazard-zone" data-name="Blocked Extinguisher" data-desc="Fire extinguisher hidden behind boxes" style="left:20%;top:62%;width:40px;height:45px"></div>' +
+            '<div class="hazard-zone" data-name="Chemical Spill" data-desc="Liquid spill near chemical storage area" style="left:58%;top:72%;width:55px;height:35px"></div>' +
+            '<div id="g1-popup" style="display:none;position:absolute;background:rgba(6,17,34,0.96);border:1px solid #00D4FF;border-radius:10px;padding:12px 16px;z-index:20;max-width:200px;font-size:13px;color:#E6EDF3;pointer-events:none;box-shadow:0 0 16px rgba(0,212,255,0.25);"></div>' +
+          '</div>' +
+          '<div id="g1-result" style="display:none;margin-top:16px;"></div>';
+        startGame1();
+
+      } else if (gameId === 'game2') {
+        title.textContent = '🃏 Safe or Unsafe?';
+        content.innerHTML =
+          '<div style="height:6px;background:rgba(255,255,255,0.1);border-radius:3px;margin-bottom:12px;overflow:hidden"><div id="g2-progress-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#00D4FF,#38BDF8);border-radius:3px;transition:width 0.3s"></div></div>' +
+          '<div style="display:flex;justify-content:space-between;font-size:14px;color:#8B949E;margin-bottom:16px"><span>Sorted: <span id="g2-sorted">0</span>/10</span><span>Score: <span id="g2-score">0</span></span></div>' +
+          '<div id="g2-layout" style="display:flex;gap:16px;">' +
+            '<div id="g2-deck" style="flex:1;max-height:380px;overflow-y:auto;"></div>' +
+            '<div id="g2-zones-wrap" style="display:flex;flex-direction:column;gap:12px;flex-shrink:0;">' +
+              '<div id="g2-safe-zone" class="drop-zone safe-zone"><div class="zone-icon">✓</div><div class="zone-label">SAFE</div></div>' +
+              '<div id="g2-unsafe-zone" class="drop-zone unsafe-zone"><div class="zone-icon">✗</div><div class="zone-label">UNSAFE</div></div>' +
+            '</div>' +
+          '</div>' +
+          '<div id="g2-xp-popup" class="xp-popup"></div>' +
+          '<div id="g2-result" style="display:none;margin-top:16px;"></div>';
+        startGame2();
+
+      } else if (gameId === 'game3') {
+        title.textContent = '⏱️ Beat the Clock';
+        content.innerHTML = '<div id="g3-content"></div>';
+        startGame3();
+
+      } else if (gameId === 'game4') {
+        title.textContent = '🎭 Scenario Simulator';
+        content.innerHTML = '<div id="g4-content"></div>';
+        startGame4();
+      }
+    }
+
+    function closeModal() {
+      clearInterval(activeTimer);
+      document.getElementById('game-modal').style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+
+    // Maps this page's internal game ids to the server's activity catalogue
+    // (server/server.js MODULE_XP) — the server, not this function, decides
+    // how much XP each activity is actually worth.
+    var GAME_ACTIVITY_ID = {
+      game1: 'game1_hazardhunt',
+      game2: 'game2_safeorunsafe',
+      game3: 'game3_beattheclock',
+      game4: 'game4_scenario'
+    };
+
+    async function awardGameXP(gameId, xp) {
+      if (xp <= 0) return;
+      var ov = document.getElementById('xp-award-overlay');
+      try {
+        var activityId = GAME_ACTIVITY_ID[gameId];
+        if (activityId) await completeModuleOnServer(activityId); // persists to the DB; no-ops if already awarded
+        if (document.getElementById('user-xp')) {
+          var u = getCurrentUser();
+          if (u) document.getElementById('user-xp').innerText = (u.xp || 0) + ' XP';
+        }
+        if (ov) {
+          ov.textContent = '+' + xp + ' XP Earned!';
+          ov.style.display = 'flex';
+          setTimeout(function() { ov.style.display = 'none'; }, 2500);
+        }
+      } catch (err) {
+        showToast('Could not save XP to the server: ' + err.message, 'error');
+      }
+    }
+
+    // =====================
+    // GAME 1: HAZARD HUNT
+    // =====================
+    function startGame1() {
+      var found = 0, timeLeft = 60, total = 8;
+      var fill = document.getElementById('g1-timer-fill');
+      fill.style.width = '100%';
+      fill.style.background = '#3FB950';
+
+      document.querySelectorAll('.hazard-zone').forEach(function(z) {
+        z.classList.remove('found');
+        z.onclick = function() {
+          if (this.classList.contains('found')) return;
+          this.classList.add('found');
+          found++;
+          document.getElementById('g1-count').textContent = found;
+          var pop = document.getElementById('g1-popup');
+          var scene = document.getElementById('g1-scene');
+          var r = this.getBoundingClientRect(), sr = scene.getBoundingClientRect();
+          pop.style.left = (r.left - sr.left + 10) + 'px';
+          pop.style.top = Math.max(2, r.top - sr.top - 60) + 'px';
+          pop.innerHTML = '<strong style="color:#00D4FF">⚠ ' + this.dataset.name + '</strong><br><span style="color:#aaa;font-size:12px">' + this.dataset.desc + '</span>';
+          pop.style.display = 'block';
+          setTimeout(function() { pop.style.display = 'none'; }, 2500);
+          if (found === total) endGame1();
+        };
+      });
+
+      activeTimer = setInterval(function() {
+        timeLeft--;
+        var el = document.getElementById('g1-time');
+        if (el) el.textContent = timeLeft;
+        fill.style.width = (timeLeft / 60 * 100) + '%';
+        if (timeLeft <= 20) fill.style.background = '#E3B341';
+        if (timeLeft <= 10) fill.style.background = '#F85149';
+        if (timeLeft <= 0) { clearInterval(activeTimer); endGame1(); }
+      }, 1000);
+
+      function endGame1() {
+        clearInterval(activeTimer);
+        document.querySelectorAll('.hazard-zone').forEach(function(z) { z.onclick = null; });
+        var xp = found * 10 + (found === total ? 50 : 0);
+        awardGameXP('game1', xp);
+        var res = document.getElementById('g1-result');
+        res.style.display = 'block';
+        res.innerHTML =
+          '<div style="text-align:center;padding:24px;background:rgba(13,17,23,0.95);border-radius:12px;border:1px solid rgba(255,255,255,0.1);margin-top:12px">' +
+          '<div style="font-size:48px;margin-bottom:8px">' + (found === total ? '🏆' : '🔍') + '</div>' +
+          '<h3 style="color:#00D4FF;margin-bottom:8px">' + (found === total ? 'All Hazards Found!' : 'Time Up!') + '</h3>' +
+          '<p style="color:#8B949E;margin-bottom:12px">Found ' + found + ' of ' + total + ' hazards</p>' +
+          '<div style="font-size:36px;font-weight:900;color:#10B981;margin-bottom:16px">+' + xp + ' XP</div>' +
+          '<button onclick="openGame(\'game1\')" style="background:linear-gradient(135deg,#00D4FF,#0284C7);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-weight:700;cursor:pointer;font-size:15px;box-shadow:0 4px 14px rgba(0,212,255,0.35)">Play Again</button>' +
+          '</div>';
+      }
+    }
+
+    // ======================
+    // GAME 2: SAFE OR UNSAFE
+    // ======================
+    var G2 = [
+      { text:'Using a step-ladder with a colleague spotting at the base', safe:true },
+      { text:'Wearing hi-vis vest, hard hat and steel-toe boots', safe:true },
+      { text:'Reporting a spilled liquid to a supervisor immediately', safe:true },
+      { text:'Completing a TILE assessment before lifting heavy boxes', safe:true },
+      { text:'Checking racking load capacity labels before storing goods', safe:true },
+      { text:'Running through the forklift corridor to save time', safe:false },
+      { text:'Removing a machine guard because it slows down the process', safe:false },
+      { text:'Stacking boxes above the racking load limit', safe:false },
+      { text:'Leaving a fire exit propped open for ventilation', safe:false },
+      { text:'Carrying a load that blocks your line of sight', safe:false }
+    ];
+
+    function startGame2() {
+      var sorted = 0, score = 0, selected = null;
+      var shuffled = G2.slice().sort(function() { return Math.random() - 0.5; });
+      var deck = document.getElementById('g2-deck');
+      deck.innerHTML = '';
+      shuffled.forEach(function(c, i) {
+        var el = document.createElement('div');
+        el.className = 'scenario-card';
+        el.textContent = c.text;
+        el.draggable = true;
+        el.dataset.safe = c.safe;
+        el.dataset.idx = i;
+        el.addEventListener('dragstart', function(e) { e.dataTransfer.setData('text/plain', String(i)); });
+        // Tap-to-select: touch screens don't fire HTML5 drag events
+        el.addEventListener('click', function() {
+          if (el.dataset.done) return;
+          var was = (selected === el);
+          deck.querySelectorAll('.scenario-card.selected').forEach(function(c) { c.classList.remove('selected'); });
+          selected = was ? null : el;
+          if (selected) el.classList.add('selected');
+        });
+        deck.appendChild(el);
+      });
+
+      ['g2-safe-zone','g2-unsafe-zone'].forEach(function(id) {
+        var zone = document.getElementById(id);
+        var expSafe = id === 'g2-safe-zone';
+        zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('drag-over'); });
+        zone.addEventListener('dragleave', function() { zone.classList.remove('drag-over'); });
+        function place(card) {
+          if (!card || card.dataset.done) return;
+          card.dataset.done = '1';
+          card.classList.remove('selected');
+          if (selected === card) selected = null;
+          var correct = ((card.dataset.safe === 'true') === expSafe);
+          card.style.background = correct ? 'rgba(63,185,80,0.25)' : 'rgba(248,81,73,0.25)';
+          card.style.borderColor = correct ? '#3FB950' : '#F85149';
+          setTimeout(function() { if (card.parentNode) card.remove(); }, 350);
+          sorted++;
+          score = correct ? score + 10 : Math.max(0, score - 5);
+          var sEl = document.getElementById('g2-sorted'), scEl = document.getElementById('g2-score'), pf = document.getElementById('g2-progress-fill');
+          if (sEl) sEl.textContent = sorted;
+          if (scEl) scEl.textContent = score;
+          if (pf) pf.style.width = (sorted / 10 * 100) + '%';
+          var pop = document.getElementById('g2-xp-popup');
+          if (pop) {
+            pop.textContent = correct ? '+10 XP ✓' : '-5 XP ✗';
+            pop.style.color = correct ? '#3FB950' : '#F85149';
+            pop.style.borderColor = correct ? '#3FB950' : '#F85149';
+            pop.style.display = 'block';
+            setTimeout(function() { pop.style.display = 'none'; }, 900);
+          }
+          if (sorted === 10) {
+            awardGameXP('game2', score);
+            var res = document.getElementById('g2-result');
+            res.style.display = 'block';
+            res.innerHTML =
+              '<div style="text-align:center;padding:24px;background:rgba(13,17,23,0.95);border-radius:12px;border:1px solid rgba(255,255,255,0.1)">' +
+              '<div style="font-size:48px">' + (score >= 80 ? '🏆' : score >= 50 ? '👍' : '💪') + '</div>' +
+              '<h3 style="color:#00D4FF;margin:8px 0">Game Complete!</h3>' +
+              '<p style="color:#8B949E">Score: ' + score + '/100</p>' +
+              '<div style="font-size:36px;font-weight:900;color:#10B981;margin:12px 0">+' + score + ' XP</div>' +
+              '<button onclick="openGame(\'game2\')" style="background:linear-gradient(135deg,#00D4FF,#0284C7);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-weight:700;cursor:pointer;font-size:15px;box-shadow:0 4px 14px rgba(0,212,255,0.35)">Play Again</button>' +
+              '</div>';
+          }
+        }
+        zone.addEventListener('drop', function(e) {
+          e.preventDefault();
+          zone.classList.remove('drag-over');
+          var idx = e.dataTransfer.getData('text/plain');
+          place(deck.querySelector('[data-idx="' + idx + '"]'));
+        });
+        // Tap a zone to drop the currently selected card into it
+        zone.addEventListener('click', function() { if (selected) place(selected); });
+      });
+    }
+
+    // ========================
+    // GAME 3: BEAT THE CLOCK
+    // ========================
+    var BTC = [
+      { q:'What does TILE stand for?', opts:['Transfer, Inspect, Lift, Evaluate','Task, Individual, Load, Environment','Task, Inspect, Lower, Equipment','None of these'], a:1 },
+      { q:'Maximum recommended lift weight for men?', opts:['15kg','20kg','25kg','30kg'], a:2 },
+      { q:'STOP approach — S stands for?', opts:['Survey','Safety','Stop and recognise the hazard','Search'], a:2 },
+      { q:"Heinrich's Triangle: near-misses per fatal accident?", opts:['30','100','300','600'], a:2 },
+      { q:'Work at Height Regulations year?', opts:['1992','1999','2005','2013'], a:2 },
+      { q:'RIDDOR — first R stands for?', opts:['Risk','Reporting','Recording','Regulation'], a:1 },
+      { q:'Three points of contact on a ladder:', opts:['2 feet only','2 hands + 1 foot OR 2 feet + 1 hand','1 foot + 1 hand','All four limbs'], a:1 },
+      { q:'Toe boards on platforms prevent:', opts:['Slipping','Objects falling from height','Electrical hazards','UV exposure'], a:1 },
+      { q:'First action when spotting a near-miss:', opts:['File a report','Tell a colleague','Make the area safe','Wait for manager'], a:2 },
+      { q:'MSD stands for:', opts:['Manual Safety Device','Movement Safety Directive','Musculoskeletal Disorder','Material Storage Documentation'], a:2 }
+    ];
+
+    function startGame3() {
+      var qi = 0, xp = 0, streak = 0;
+
+      function renderQ() {
+        clearInterval(activeTimer);
+        var c = document.getElementById('g3-content');
+        if (!c) return;
+        if (qi >= BTC.length) { endG3(); return; }
+        var q = BTC[qi], t = 8, labels = ['A','B','C','D'];
+        var opts = '';
+        q.opts.forEach(function(o, i) {
+          opts += '<button class="btc-opt" onclick="selectG3(' + i + ')">' + labels[i] + '. ' + o + '</button>';
+        });
+        c.innerHTML =
+          '<div style="display:flex;justify-content:center;margin-bottom:12px">' +
+          '<svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>' +
+          '<circle id="g3arc" cx="40" cy="40" r="34" fill="none" stroke="#3FB950" stroke-width="8" stroke-dasharray="213.6" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 40 40)" style="transition:stroke-dashoffset 1s linear,stroke 0.3s"/>' +
+          '<text x="40" y="48" text-anchor="middle" font-size="22" font-weight="800" fill="#E6EDF3" id="g3secs">8</text></svg></div>' +
+          '<div style="text-align:center;font-size:12px;color:#8B949E;margin-bottom:10px">Q' + (qi+1) + '/' + BTC.length + (streak >= 3 ? ' 🔥 Streak x' + streak : '') + '</div>' +
+          '<div style="font-size:17px;font-weight:700;margin-bottom:18px;line-height:1.4;text-align:center">' + q.q + '</div>' +
+          '<div>' + opts + '</div>' +
+          '<div id="g3fb" style="min-height:28px;text-align:center;margin-top:10px;font-size:14px;font-weight:600"></div>';
+
+        var arc = document.getElementById('g3arc'), secs = document.getElementById('g3secs');
+        activeTimer = setInterval(function() {
+          t--;
+          if (secs) secs.textContent = t;
+          if (arc) {
+            arc.style.strokeDashoffset = 213.6 * (1 - t / 8);
+            arc.style.stroke = t <= 3 ? '#F85149' : t <= 5 ? '#E3B341' : '#3FB950';
+          }
+          if (t <= 0) { clearInterval(activeTimer); selectG3(-1); }
+        }, 1000);
+      }
+
+      window.selectG3 = function(chosen) {
+        clearInterval(activeTimer);
+        document.querySelectorAll('.btc-opt').forEach(function(b) { b.onclick = null; b.style.pointerEvents = 'none'; });
+        var q = BTC[qi], correct = chosen === q.a, earned = correct ? 15 : 0;
+        var streakBonus = 0;
+        if (correct) {
+          streak++;
+          if (streak >= 3) streakBonus = 5;
+          xp += (earned + streakBonus);
+        } else {
+          streak = 0;
+        }
+        document.querySelectorAll('.btc-opt').forEach(function(b, i) {
+          if (i === q.a) { b.style.borderColor='#3FB950'; b.style.background='rgba(63,185,80,0.15)'; }
+          if (i === chosen && !correct) { b.style.borderColor='#F85149'; b.style.background='rgba(248,81,73,0.15)'; }
+        });
+        var fb = document.getElementById('g3fb');
+        if (fb) fb.innerHTML = chosen === -1
+          ? '<span style="color:#F85149">⏱ Time Up! Correct: ' + q.opts[q.a] + '</span>'
+          : correct ? '<span style="color:#3FB950">✓ Correct! +' + earned + ' XP' + (streakBonus > 0 ? ' <span style="color:#00D4FF;font-weight:700;">(+5 Streak Bonus! 🔥 x' + streak + ')</span>' : '') + '</span>'
+          : '<span style="color:#F85149">✗ Wrong. Correct: ' + q.opts[q.a] + '</span>';
+        setTimeout(function() { qi++; renderQ(); }, 1800);
+      };
+
+      function endG3() {
+        awardGameXP('game3', xp);
+        var c = document.getElementById('g3-content');
+        if (c) c.innerHTML =
+          '<div style="text-align:center;padding:32px">' +
+          '<div style="font-size:56px">' + (xp >= 100 ? '🏆' : xp >= 60 ? '⭐' : '💪') + '</div>' +
+          '<h3 style="color:#00D4FF;margin:12px 0">Complete!</h3>' +
+          '<div style="font-size:48px;font-weight:900;color:#10B981;margin:16px 0">+' + xp + ' XP</div>' +
+          '<p style="color:#8B949E;margin-bottom:16px;">Includes question points + streak bonuses!</p>' +
+          '<button onclick="openGame(\'game3\')" style="background:linear-gradient(135deg,#00D4FF,#0284C7);color:#fff;border:none;border-radius:10px;padding:14px 28px;font-weight:700;cursor:pointer;font-size:15px;box-shadow:0 4px 14px rgba(0,212,255,0.35)">Play Again</button></div>';
+      }
+      renderQ();
+    }
+
+    // ===========================
+    // GAME 4: SCENARIO SIMULATOR
+    // ===========================
+    var SC = {
+      s1:{ img:'🏭', text:"You're on the warehouse floor. Colleague Tom needs something from the top mezzanine shelf. Instead of using the step-ladder, he grabs a nearby office chair to stand on. What do you do?", choices:[{l:'A',t:"Say nothing — it's not your business",n:'s2a'},{l:'B',t:'Politely tell Tom to use the proper step-ladder',n:'s2b'},{l:'C',t:'Immediately alert the nearest supervisor',n:'s2c'}] },
+      s2a:{ img:'😰', text:"Tom climbs on the chair. It wobbles dangerously. What do you do now?", choices:[{l:'A',t:'Shout for help — call out to him to get down',n:'end_partial_a'},{l:'B',t:"Walk away — it's too late now",n:'end_fail'}] },
+      s2b:{ img:'🪜', text:"Tom thanks you and gets the step-ladder. On the mezzanine, you notice the edge has no guardrail. What do you do?", choices:[{l:'A',t:'Ignore it — Tom will be careful',n:'end_partial_b'},{l:'B',t:'Tell Tom to come down and report the missing guardrail immediately',n:'end_best'}] },
+      s2c:{ img:'👷', text:"The supervisor praises you. They ask: what is the primary safety check for mezzanine work?", choices:[{l:'A',t:'Check edge guardrails and verify floor load capacity',n:'end_best'},{l:'B',t:'Check whether the lighting is adequate',n:'end_partial_c'}] },
+      end_fail:{out:'FAIL',xp:0,em:'❌',txt:'Tom falls and suffers a serious injury.',lesson:'Under HASAWA 1974, every employee must report unsafe acts. Silence is never correct — you had multiple chances to intervene.'},
+      end_partial_a:{out:'PARTIAL',xp:80,em:'⚠️',txt:'Tom gets down safely, shaken but unharmed. You intervened — but later than ideal.',lesson:'You eventually intervened, which was right. Speaking up before Tom climbed would have been the safest course of action.'},
+      end_partial_b:{out:'PARTIAL',xp:100,em:'⚠️',txt:'Tom finishes, but the missing guardrail remains unreported. A week later, another colleague nearly falls.',lesson:'You stopped the unsafe act but failed to report the structural hazard. Work at Height Regulations 2005 require all guardrail deficiencies to be reported immediately.'},
+      end_partial_c:{out:'PARTIAL',xp:100,em:'⚠️',txt:'Lighting is adequate, but the guardrail remains a significant unreported hazard.',lesson:'Good instinct, but structural fall protection is always the primary concern for elevated work — guardrails and load capacity first.'},
+      end_best:{out:'PERFECT',xp:200,em:'🏆',txt:'Outstanding! The supervisor commends you. The guardrail is fitted and mezzanine fully assessed.',lesson:'Excellent hazard awareness, correct application of Work at Height hierarchy, and you protected a colleague from serious injury. Perfect response.'}
+    };
+
+    function startGame4() { window.renderScene('s1'); }
+
+    window.renderScene = function(key) {
+      var scene = SC[key];
+      var c = document.getElementById('g4-content');
+      if (!c || !scene) return;
+      if (scene.out) {
+        awardGameXP('game4', scene.xp);
+        var p = scene.out === 'PERFECT', f = scene.out === 'FAIL';
+        c.innerHTML =
+          '<div style="text-align:center;padding:32px 16px">' +
+          '<div style="font-size:64px;margin-bottom:16px">' + scene.em + '</div>' +
+          '<div style="display:inline-block;padding:6px 20px;border-radius:20px;font-size:12px;font-weight:800;margin-bottom:14px;background:' + (p?'rgba(63,185,80,0.15)':f?'rgba(248,81,73,0.15)':'rgba(227,179,65,0.15)') + ';color:' + (p?'#3FB950':f?'#F85149':'#E3B341') + '">' + scene.out + '</div>' +
+          '<h3 style="font-size:15px;font-weight:700;margin-bottom:12px;color:#E6EDF3">' + scene.txt + '</h3>' +
+          '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:16px;margin:12px 0;text-align:left">' +
+          '<div style="font-size:11px;font-weight:800;color:#00D4FF;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📖 Lesson:</div>' +
+          '<p style="font-size:13px;color:#8B949E;line-height:1.6">' + scene.lesson + '</p></div>' +
+          (scene.xp > 0 ? '<div style="font-size:40px;font-weight:900;color:#10B981;margin:12px 0">+' + scene.xp + ' XP</div>' : '<div style="color:#F43F5E;margin:12px 0">No XP earned</div>') +
+          '<button onclick="openGame(\'game4\')" style="background:linear-gradient(135deg,#00D4FF,#0284C7);color:#fff;border:none;border-radius:10px;padding:14px 28px;font-weight:700;cursor:pointer;font-size:15px;margin-top:8px;box-shadow:0 4px 14px rgba(0,212,255,0.35)">Try Again</button></div>';
+        return;
+      }
+      var btns = '';
+      scene.choices.forEach(function(ch) {
+        btns += '<button onclick="renderScene(\'' + ch.n + '\')" style="display:block;width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:14px 18px;color:#E6EDF3;font-size:14px;text-align:left;cursor:pointer;margin-bottom:10px;font-family:Inter,sans-serif;transition:border-color 0.15s" onmouseover="this.style.borderColor=\'#00D4FF\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.1)\'">' +
+          '<span style="display:inline-block;width:26px;height:26px;background:#00D4FF;color:#061122;border-radius:6px;font-weight:800;text-align:center;line-height:26px;margin-right:10px;font-size:12px">' + ch.l + '</span>' + ch.t + '</button>';
+      });
+      c.innerHTML =
+        '<div style="text-align:center;margin-bottom:18px;font-size:52px">' + scene.img + '</div>' +
+        '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:18px;margin-bottom:16px"><p style="font-size:15px;line-height:1.6">' + scene.text + '</p></div>' +
+        '<div style="font-size:11px;font-weight:800;color:#8B949E;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">What do you do?</div>' + btns;
+    };
+  </script>
+</body>
+</html>

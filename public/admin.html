@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="images/safelearn-icon.svg">
+  <title>SafeLearn — Admin Compliance &amp; Incident Management Panel</title>
+  <meta name="description" content="Admin dashboard for staff compliance audit and live incident management">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .admin-navbar { border-bottom-color: var(--danger); background: rgba(15, 23, 42, 0.95); }
+    .stat-card .value { font-size: 2rem; font-weight: 800; }
+    table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+    th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+    th { color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+    .dot-green { background: var(--success); }
+    .dot-red { background: var(--danger); }
+    .dot-yellow { background: var(--warning); }
+    .compliance-table { min-width: 920px; margin-top: 18px; }
+    .compliance-table th { padding: 14px 16px; }
+    .compliance-table td { padding: 16px; }
+    .progress-mark { display: inline-flex; width: 24px; height: 24px; align-items: center; justify-content: center; border-radius: 7px; font-size: 0.9rem; font-weight: 700; }
+    .progress-mark.done { color: #167A4A; background: rgba(22, 122, 74, 0.12); border: 1px solid rgba(22, 122, 74, 0.25); }
+    .progress-mark.pending { color: var(--text-dim); background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); }
+    
+    /* Bar Chart */
+    .bar-chart { display: flex; flex-direction: column; gap: 14px; margin-top: 20px; }
+    .bar-row { display: flex; align-items: center; gap: 14px; }
+    .bar-label { width: 160px; font-size: 0.85rem; color: var(--text-secondary); text-align: right; }
+    .bar-track { flex: 1; height: 20px; background: rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; font-size: 0.75rem; font-weight: bold; color: #0A192F; }
+
+    /* Incident Cards */
+    .incident-item { 
+      padding: 18px 20px; 
+      border-bottom: 1px solid var(--border); 
+      transition: background 0.2s;
+    }
+    .incident-item:hover { background: rgba(255, 255, 255, 0.02); }
+    .incident-item:last-child { border-bottom: none; }
+    
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
+    }
+    .modal-box {
+      background: var(--surface-solid); border: 1px solid var(--border); border-radius: var(--radius-xl);
+      max-width: 620px; width: 100%; padding: 32px; box-shadow: var(--shadow-lg); position: relative;
+    }
+  </style>
+  <link rel="stylesheet" href="css/mobile.css">
+  <script src="js/mobile.js" defer></script>
+</head>
+<body>
+  <nav class="navbar admin-navbar">
+    <a href="admin.html" class="navbar-brand">
+      <img src="images/safelearn-icon.svg" alt="SafeLearn logo" style="height:32px; width:auto;">
+      <span style="font-size:1.1rem; font-weight:800; color:var(--text-primary); margin-left:6px;">
+        SafeLearn <span style="color:var(--danger);">Admin Panel</span>
+      </span>
+    </a>
+    <div class="navbar-nav">
+      <a href="dashboard.html" class="nav-link">Staff Dashboard</a>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="badge badge-danger">Safety Manager</span>
+        <button onclick="logout()" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.8rem;">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container animate-slide-up">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+      <div>
+        <h1 style="font-size: 2rem; margin-bottom: 4px;">Admin &amp; H&amp;S Compliance Command Hub</h1>
+        <p class="text-muted">Real-time supervision of registered warehouse workforce, training completions, and submitted hazard reports.</p>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-secondary" onclick="document.getElementById('staff-management').scrollIntoView({ behavior: 'smooth', block: 'start' })">Manage users</button>
+        <button class="btn btn-secondary" onclick="exportComplianceCSV()">Export Compliance CSV</button>
+        <button class="btn btn-primary" onclick="exportIncidentsCSV()">Export RIDDOR Incidents</button>
+      </div>
+    </div>
+    
+    <!-- Top Stat Summary -->
+    <div class="grid-4" style="margin-bottom: 36px;">
+      <div class="glass-card stat-card">
+        <div class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Total Registered Staff</div>
+        <div class="value" id="stat-staff-count">5</div>
+        <div style="font-size: 0.75rem; color: var(--accent-cyan); margin-top: 4px;">Live from SafeLearn server database</div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Fully Certified</div>
+        <div class="value" id="stat-certified" style="color:var(--success)">2 (40%)</div>
+        <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">All 4 training topics passed</div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Incident Reports Logged</div>
+        <div class="value" id="stat-incident-count" style="color:var(--iris-cyan)">3</div>
+        <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;" id="stat-review-count">1 Under Review</div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Avg Knowledge Score</div>
+        <div class="value" style="color:var(--iris-cyan)" id="stat-avg-score">—%</div>
+        <div style="font-size: 0.75rem; color: var(--success); margin-top: 4px;" id="stat-avg-score-sub">Exceeds 80% pass threshold</div>
+      </div>
+    </div>
+
+    <div style="display:grid; gap:24px;">
+      
+      <div class="glass-card" id="staff-management" style="overflow-x: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <div>
+            <h3 style="font-size:1.25rem;">Staff Training Compliance</h3>
+            <span style="font-size: 0.86rem; color: var(--text-dim);">Review staff progress and manage accounts.</span>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="openStaffModal()">Add staff</button>
+        </div>
+
+        <table class="compliance-table">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Department</th>
+              <th>Hazard</th>
+              <th>Manual</th>
+              <th>Acts</th>
+              <th>Height</th>
+              <th>Status</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="complianceTableBody">
+            <!-- Dynamically populated from the server via SafeLearnAPI.getAdminUsers() -->
+          </tbody>
+        </table>
+
+        <!-- Module Progress Chart below table -->
+        <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border);">
+          <h4 style="font-size: 0.95rem; color: var(--text-secondary); margin-bottom: 10px;">Topic Completion Rates (Shift Average)</h4>
+          <div class="bar-chart">
+            <div class="bar-row"><div class="bar-label">Hazard Perception</div><div class="bar-track"><div class="bar-fill" id="bar-hazard" style="width: 0%; background: #FF6B00;"></div></div></div>
+            <div class="bar-row"><div class="bar-label">Manual Handling</div><div class="bar-track"><div class="bar-fill" id="bar-manual" style="width: 0%; background: #3FB950;"></div></div></div>
+            <div class="bar-row"><div class="bar-label">Unsafe Acts</div><div class="bar-track"><div class="bar-fill" id="bar-unsafe" style="width: 0%; background: #F59E0B;"></div></div></div>
+            <div class="bar-row"><div class="bar-label">Working at Height</div><div class="bar-track"><div class="bar-fill" id="bar-height" style="width: 0%; background: #EF4444;"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card" style="padding: 0; overflow: hidden;">
+        <div style="padding: 24px 24px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h3 style="display: flex; align-items: center; gap: 8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-yellow)" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Staff Incident &amp; Near-Miss Log
+              <span class="badge badge-warning" id="badgeIncidentTotal">3</span>
+            </h3>
+            <span style="font-size: 0.8rem; color: var(--text-dim);">Live records submitted by warehouse staff via SafeLearn</span>
+          </div>
+          <a href="report.html" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 10px;">+ Test Log Form</a>
+        </div>
+
+        <!-- Scrollable Incident List -->
+        <div id="incidentListContainer" style="max-height: 520px; overflow-y: auto;">
+          <!-- Dynamically populated from the server via SafeLearnAPI.getIncidents() -->
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Add Staff Modal -->
+  <div class="modal-overlay" id="staffModal">
+    <div class="modal-box" style="max-width:500px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+        <div>
+          <h2 style="font-size:1.35rem; margin:0;">Add staff member</h2>
+          <p class="text-muted" style="font-size:0.84rem; margin-top:4px;">Create an employee account without leaving the admin area.</p>
+        </div>
+        <button type="button" onclick="closeStaffModal()" style="background:none; border:0; color:var(--text-muted); font-size:1.5rem; cursor:pointer;">×</button>
+      </div>
+      <form onsubmit="addStaffFromAdmin(event)">
+        <div class="form-group"><label class="form-label" for="admin-staff-name">Full name</label><input class="form-control" id="admin-staff-name" required></div>
+        <div class="form-group"><label class="form-label" for="admin-staff-dept">Department</label><input class="form-control" id="admin-staff-dept" placeholder="e.g. Loading Bay" required></div>
+        <div class="form-group"><label class="form-label" for="admin-staff-email">Work email</label><input class="form-control" id="admin-staff-email" type="email" required></div>
+        <div class="form-group">
+          <label class="form-label" for="admin-staff-password">Strong password <span style="color:var(--text-dim);font-weight:400;text-transform:none;">(min 8 chars: A-Z, a-z, 0-9, symbol)</span></label>
+          <input class="form-control" id="admin-staff-password" type="password" minlength="8" placeholder="e.g. SafeStaff#2026" required>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:24px;"><button type="button" class="btn btn-secondary" onclick="closeStaffModal()">Cancel</button><button type="submit" class="btn btn-primary">Create account</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete User Confirmation -->
+  <div class="modal-overlay" id="deleteUserModal">
+    <div class="modal-box" style="max-width:440px;">
+      <div style="width:42px; height:42px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:rgba(239,68,68,.12); color:var(--danger); font-size:1.25rem; font-weight:700; margin-bottom:18px;">!</div>
+      <h2 style="font-size:1.3rem; margin-bottom:8px;">Delete staff account?</h2>
+      <p class="text-muted" style="line-height:1.6;">You are about to permanently remove <strong id="delete-user-name" style="color:var(--text-primary);"></strong> from SafeLearn. Their account cannot be restored.</p>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:28px;">
+        <button type="button" class="btn btn-secondary" onclick="closeDeleteUserModal()">Keep account</button>
+        <button type="button" class="btn btn-danger" onclick="deleteSelectedUser()">Delete account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Staff Modal -->
+  <div class="modal-overlay" id="editStaffModal">
+    <div class="modal-box" style="max-width:500px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+        <div>
+          <h2 style="font-size:1.35rem; margin:0;">Edit staff member</h2>
+          <p class="text-muted" style="font-size:0.84rem; margin-top:4px;">Update name, department, email or reset password.</p>
+        </div>
+        <button type="button" onclick="closeEditModal()" style="background:none; border:0; color:var(--text-muted); font-size:1.5rem; cursor:pointer;">×</button>
+      </div>
+      <form onsubmit="saveStaffEdits(event)">
+        <input type="hidden" id="edit-staff-id">
+        <div class="form-group"><label class="form-label" for="edit-staff-name">Full name</label><input class="form-control" id="edit-staff-name" required></div>
+        <div class="form-group"><label class="form-label" for="edit-staff-dept">Department</label><input class="form-control" id="edit-staff-dept" placeholder="e.g. Loading Bay" required></div>
+        <div class="form-group"><label class="form-label" for="edit-staff-email">Work email</label><input class="form-control" id="edit-staff-email" type="email" required></div>
+        <div class="form-group">
+          <label class="form-label" for="edit-staff-password">New password <span style="color:var(--text-dim);font-weight:400;text-transform:none;">(leave blank to keep unchanged; min 8 chars with mixed symbols)</span></label>
+          <input class="form-control" id="edit-staff-password" type="password" minlength="8" placeholder="Leave blank to keep unchanged">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:24px;">
+          <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Incident Details Modal -->
+  <div class="modal-overlay" id="incidentModal">
+    <div class="modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+        <div>
+          <span class="badge badge-warning" id="modalSeverity">High</span>
+          <h2 style="margin-top: 8px; font-size: 1.4rem;" id="modalId">INC-0041</h2>
+        </div>
+        <button onclick="closeIncidentModal()" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">✕</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; font-size: 0.88rem;">
+        <div><span class="text-muted">Type:</span> <strong id="modalType">Near-Miss</strong></div>
+        <div><span class="text-muted">Location:</span> <strong id="modalLocation">Loading Bay A</strong></div>
+        <div><span class="text-muted">Date &amp; Time:</span> <strong id="modalDate">2026-08-22 09:30</strong></div>
+        <div><span class="text-muted">Reporter:</span> <strong id="modalReporter">John Smith</strong></div>
+      </div>
+
+      <div style="margin-bottom: 18px;">
+        <div class="text-muted" style="font-size: 0.8rem; text-transform: uppercase; margin-bottom: 4px;">Full Description of Hazard:</div>
+        <div style="background: rgba(10, 15, 25, 0.7); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 0.9rem; line-height: 1.6;" id="modalDesc">
+          Description goes here...
+        </div>
+      </div>
+
+      <div style="margin-bottom: 24px;">
+        <div class="text-muted" style="font-size: 0.8rem; text-transform: uppercase; margin-bottom: 4px;">Immediate Action Taken on Floor:</div>
+        <div style="background: rgba(10, 15, 25, 0.7); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 0.88rem; color: var(--text-secondary);" id="modalAction">
+          Action goes here...
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 18px;">
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-muted); margin-right: 8px;">Update Status:</span>
+          <select id="modalStatusSelect" onchange="changeActiveStatus(this.value)" class="form-control" style="width: auto; display: inline-block; padding: 6px 12px; font-size: 0.85rem;">
+            <option value="Reported">Reported</option>
+            <option value="Under Review">Under Review</option>
+            <option value="Resolved">Resolved</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="closeIncidentModal()">Done / Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    let activeViewingId = null;
+    let deletingUserId = null;
+    let cachedIncidents = [];
+    const TRAINING_IDS = MODULES.map(m => m.id); // the 4 core training topics (excludes mini-games)
+
+    (async () => {
+      const admin = await checkAuth(true); // verified server-side; require admin role
+      if (!admin) return;
+      await refreshAll();
+    })();
+
+    async function refreshAll() {
+      await Promise.all([renderComplianceTable(), renderIncidentsList(), renderStats()]);
+    }
+
+    // 0. TOP STAT CARDS — real aggregates from the server
+    async function renderStats() {
+      try {
+        const stats = await SafeLearnAPI.getAdminStats();
+        document.getElementById('stat-staff-count').innerText = stats.totalStaff;
+        document.getElementById('stat-certified').innerText = `${stats.fullyCertified} (${stats.fullyCertifiedPct}%)`;
+        document.getElementById('stat-incident-count').innerText = stats.incidentCount;
+        document.getElementById('stat-review-count').innerText = `${stats.underReview} Under Review`;
+
+        // Compute average knowledge score from the 4 core module completion rates
+        const coreIds = ['hazard', 'manual', 'unsafe', 'height'];
+        const values = coreIds.map(id => stats.topicCompletion[id] ?? 0);
+        const avgScore = values.length ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0;
+        const avgEl = document.getElementById('stat-avg-score');
+        const avgSub = document.getElementById('stat-avg-score-sub');
+        if (avgEl) avgEl.innerText = avgScore + '%';
+        if (avgSub) {
+          if (avgScore >= 80) {
+            avgSub.style.color = 'var(--success)';
+            avgSub.innerText = 'Exceeds 80% pass threshold';
+          } else {
+            avgSub.style.color = 'var(--danger)';
+            avgSub.innerText = 'Below 80% pass threshold';
+          }
+        }
+
+        const bars = { hazard: 'bar-hazard', manual: 'bar-manual', unsafe: 'bar-unsafe', height: 'bar-height' };
+        for (const [id, elId] of Object.entries(bars)) {
+          const pct = stats.topicCompletion[id] ?? 0;
+          const el = document.getElementById(elId);
+          if (el) { el.style.width = pct + '%'; el.innerText = pct + '%'; }
+        }
+      } catch (err) {
+        showToast('Could not load compliance stats: ' + err.message, 'error');
+      }
+    }
+
+    // 1. RENDER REGISTERED STAFF & COMPLIANCE — real per-user progress from the server
+    async function renderComplianceTable() {
+      let users;
+      try {
+        users = (await SafeLearnAPI.getAdminUsers()).users.filter(u => u.role === 'employee');
+      } catch (err) {
+        showToast('Could not load staff: ' + err.message, 'error');
+        return;
+      }
+
+      const tbody = document.getElementById('complianceTableBody');
+      tbody.innerHTML = '';
+
+      users.forEach(u => {
+        const done = TRAINING_IDS.map(id => u.completedModules.includes(id));
+        const allDone = done.every(Boolean);
+        const noneDone = done.every(v => !v);
+        const statusText = allDone ? 'Compliant' : noneDone ? 'Not Started' : 'In Training';
+        const dotClass = allDone ? 'dot-green' : noneDone ? 'dot-red' : 'dot-yellow';
+
+        tbody.innerHTML += `
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div style="width:26px; height:26px; border-radius:50%; background:linear-gradient(135deg, var(--iris-cyan), var(--iris-marine)); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.7rem; box-shadow:0 0 8px rgba(0,212,255,0.3);">
+                  ${escapeHTML(initials(u.name))}
+                </div>
+                <strong>${escapeHTML(u.name)}</strong>
+              </div>
+            </td>
+            <td style="color:var(--text-muted)">${escapeHTML(u.department || 'Operations')}</td>
+            <td>${progressMark(done[0])}</td>
+            <td>${progressMark(done[1])}</td>
+            <td>${progressMark(done[2])}</td>
+            <td>${progressMark(done[3])}</td>
+            <td><span class="status-dot ${dotClass}"></span>${statusText}</td>
+            <td style="text-align:right;">
+              <button type="button" class="btn btn-secondary" onclick="openEditModal('${u.id}','${escapeHTML(u.name)}','${escapeHTML(u.email)}','${escapeHTML(u.department||'')}')" style="padding:5px 10px;font-size:0.72rem;white-space:nowrap;margin-right:6px;">Edit</button>
+              <button type="button" class="btn btn-danger" onclick="confirmDeleteUser('${u.id}', '${escapeHTML(u.name)}')" style="padding:5px 10px; font-size:0.72rem; white-space:nowrap;">Delete</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function progressMark(completed) {
+      return completed
+        ? '<span class="progress-mark done" aria-label="Complete">✓</span>'
+        : '<span class="progress-mark pending" aria-label="Not complete">—</span>';
+    }
+
+    function openStaffModal() {
+      document.getElementById('staffModal').style.display = 'flex';
+      document.getElementById('admin-staff-name').focus();
+    }
+
+    function closeStaffModal() {
+      document.getElementById('staffModal').style.display = 'none';
+    }
+
+    function openEditModal(userId, name, email, department) {
+      document.getElementById('edit-staff-id').value   = userId;
+      document.getElementById('edit-staff-name').value = name;
+      document.getElementById('edit-staff-email').value = email;
+      document.getElementById('edit-staff-dept').value = department;
+      document.getElementById('edit-staff-password').value = '';
+      document.getElementById('editStaffModal').style.display = 'flex';
+      document.getElementById('edit-staff-name').focus();
+    }
+
+    function closeEditModal() {
+      document.getElementById('editStaffModal').style.display = 'none';
+    }
+
+    function checkStrongPassword(pwd) {
+      if (!pwd || pwd.length < 8) return 'Password must be at least 8 characters long.';
+      if (!/[A-Z]/.test(pwd)) return 'Password must contain at least one uppercase letter (A-Z).';
+      if (!/[a-z]/.test(pwd)) return 'Password must contain at least one lowercase letter (a-z).';
+      if (!/[0-9]/.test(pwd)) return 'Password must contain at least one number (0-9).';
+      if (!/[^A-Za-z0-9]/.test(pwd)) return 'Password must contain at least one special symbol (!@#$%^&*).';
+      return null;
+    }
+
+    async function saveStaffEdits(event) {
+      event.preventDefault();
+      const id         = document.getElementById('edit-staff-id').value;
+      const name       = document.getElementById('edit-staff-name').value;
+      const email      = document.getElementById('edit-staff-email').value;
+      const department = document.getElementById('edit-staff-dept').value;
+      const password   = document.getElementById('edit-staff-password').value;
+      const payload    = { name, email, department };
+      if (password) {
+        const pwdErr = checkStrongPassword(password);
+        if (pwdErr) {
+          showToast(pwdErr, 'error');
+          return;
+        }
+        payload.password = password;
+      }
+      try {
+        await SafeLearnAPI.adminUpdateUser(id, payload);
+        closeEditModal();
+        await refreshAll();
+        showToast('Staff profile updated successfully.', 'success');
+      } catch (err) {
+        showToast(err.message || 'Could not update staff member.', 'error');
+      }
+    }
+
+    async function addStaffFromAdmin(event) {
+      event.preventDefault();
+      const password = document.getElementById('admin-staff-password').value;
+      const pwdErr = checkStrongPassword(password);
+      if (pwdErr) {
+        showToast(pwdErr, 'error');
+        return;
+      }
+      try {
+        await SafeLearnAPI.adminCreateUser({
+          name: document.getElementById('admin-staff-name').value,
+          email: document.getElementById('admin-staff-email').value,
+          department: document.getElementById('admin-staff-dept').value,
+          password: password,
+          role: 'employee'
+        });
+      } catch (err) {
+        showToast(err.message, 'error');
+        return;
+      }
+
+      event.target.reset();
+      closeStaffModal();
+      await refreshAll();
+      showToast('Staff account created.', 'success');
+    }
+
+    function confirmDeleteUser(userId, name) {
+      deletingUserId = userId;
+      document.getElementById('delete-user-name').textContent = name;
+      document.getElementById('deleteUserModal').style.display = 'flex';
+    }
+
+    function closeDeleteUserModal() {
+      deletingUserId = null;
+      document.getElementById('deleteUserModal').style.display = 'none';
+    }
+
+    async function deleteSelectedUser() {
+      if (!deletingUserId) return;
+      try {
+        await SafeLearnAPI.deleteAdminUser(deletingUserId);
+        closeDeleteUserModal();
+        await refreshAll();
+        showToast('Staff account removed from SafeLearn.', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // 2. RENDER LIVE INCIDENTS FROM THE SERVER
+    async function renderIncidentsList() {
+      try {
+        cachedIncidents = (await SafeLearnAPI.getIncidents()).incidents;
+      } catch (err) {
+        showToast('Could not load incidents: ' + err.message, 'error');
+        return;
+      }
+      const incidents = cachedIncidents;
+      const container = document.getElementById('incidentListContainer');
+      container.innerHTML = '';
+
+      document.getElementById('badgeIncidentTotal').innerText = incidents.length;
+
+      if (incidents.length === 0) {
+        container.innerHTML = `<div style="padding:32px; text-align:center; color:var(--text-muted);">No incidents currently logged.</div>`;
+        return;
+      }
+
+      incidents.forEach(inc => {
+        const isResolved = inc.status === 'Resolved';
+        const isReview = inc.status === 'Under Review';
+        const badgeClass = isResolved ? 'badge-success' : isReview ? 'badge-warning' : 'badge-xp';
+        const sevColor = inc.severity === 'High' ? 'var(--danger)' : inc.severity === 'Medium' ? 'var(--warning)' : 'var(--success)';
+        const when = inc.incident_at ? inc.incident_at.replace('T', ' ') : new Date(inc.created_at).toLocaleString('en-GB');
+
+        // All free-text fields are escaped before insertion — an incident description
+        // is user-submitted content and must never be trusted as HTML.
+        container.innerHTML += `
+          <div class="incident-item">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+              <div>
+                <strong style="color:var(--iris-cyan); font-size:0.95rem;">${escapeHTML(inc.id)}</strong>
+                <span class="badge" style="background:${sevColor}22; color:${sevColor}; border:1px solid ${sevColor}44; margin-left:6px; font-size:0.7rem;">
+                  ${escapeHTML(inc.severity)} Severity
+                </span>
+                <span style="font-size:0.8rem; color:var(--text-dim); margin-left:8px;">${escapeHTML(when)}</span>
+              </div>
+              <span class="badge ${badgeClass}">${escapeHTML(inc.status)}</span>
+            </div>
+
+            <div style="font-size:0.88rem; font-weight:600; color:var(--text-primary); margin-bottom:4px;">
+              ${escapeHTML(inc.category)} — ${escapeHTML(inc.location)}
+            </div>
+
+            <p style="font-size:0.82rem; color:var(--text-muted); line-height:1.5; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+              ${escapeHTML(inc.description)}
+            </p>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.78rem;">
+              <span style="color:var(--text-dim);">Reported by: <strong style="color:var(--text-secondary)">${escapeHTML(inc.reporter)}</strong> (${escapeHTML(inc.department || 'Floor')})</span>
+              <button onclick="viewIncidentModal('${inc.id}')" class="btn btn-secondary" style="padding:4px 12px; font-size:0.75rem;">
+                View Details &amp; Resolve →
+              </button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // 3. MODAL LOGIC FOR INCIDENT REVIEW
+    function viewIncidentModal(incId) {
+      const inc = cachedIncidents.find(i => i.id === incId);
+      if (!inc) return;
+
+      activeViewingId = incId;
+      const when = inc.incident_at ? inc.incident_at.replace('T', ' ') : new Date(inc.created_at).toLocaleString('en-GB');
+      document.getElementById('modalId').innerText = inc.id + ' — ' + inc.category;
+      document.getElementById('modalSeverity').innerText = inc.severity + ' Severity';
+      document.getElementById('modalType').innerText = inc.category;
+      document.getElementById('modalLocation').innerText = inc.location;
+      document.getElementById('modalDate').innerText = when;
+      document.getElementById('modalReporter').innerText = inc.reporter + ' (' + (inc.department || 'Warehouse') + ')';
+      document.getElementById('modalDesc').innerText = inc.description; // .innerText, never innerHTML, for user-submitted text
+      document.getElementById('modalAction').innerText = inc.action_taken || 'None recorded.';
+      document.getElementById('modalStatusSelect').value = inc.status || 'Reported';
+
+      document.getElementById('incidentModal').style.display = 'flex';
+    }
+
+    function closeIncidentModal() {
+      document.getElementById('incidentModal').style.display = 'none';
+      renderIncidentsList();
+      renderStats();
+    }
+
+    async function changeActiveStatus(newStatus) {
+      if (!activeViewingId) return;
+      try {
+        await SafeLearnAPI.updateIncidentStatus(activeViewingId, newStatus);
+        showToast(`Status updated to "${newStatus}"`, 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // 4. CSV EXPORTS — built from real server data
+    async function exportComplianceCSV() {
+      const users = (await SafeLearnAPI.getAdminUsers()).users.filter(u => u.role === 'employee');
+      const label = id => (id === 'hazard' ? 'Hazard Perception' : id === 'manual' ? 'Manual Handling' : id === 'unsafe' ? 'Unsafe Acts' : 'Working at Height');
+      let csv = "Employee Name,Department,Email,Hazard Perception,Manual Handling,Unsafe Acts,Working at Height,Compliance Status\n";
+      users.forEach(u => {
+        const cols = TRAINING_IDS.map(id => u.completedModules.includes(id) ? 'Passed' : 'Pending');
+        const status = cols.every(c => c === 'Passed') ? 'Compliant' : 'In Progress';
+        csv += `"${u.name}","${u.department || 'Warehouse'}","${u.email}",${cols.join(',')},${status}\n`;
+      });
+      downloadCSV(csv, `SafeLearn_Staff_Compliance_${new Date().toISOString().slice(0,10)}.csv`);
+      showToast('Compliance audit report exported as CSV!', 'success');
+    }
+
+    async function exportIncidentsCSV() {
+      const incidents = (await SafeLearnAPI.getIncidents()).incidents;
+      let csv = "Incident ID,Category,Severity,Location,Date/Time,Reporter,Department,Description,Action Taken,Status\n";
+      incidents.forEach(i => {
+        const when = i.incident_at ? i.incident_at.replace('T', ' ') : i.created_at;
+        csv += `"${i.id}","${i.category}","${i.severity}","${i.location}","${when}","${i.reporter}","${i.department || ''}","${(i.description||'').replace(/"/g, '""')}","${(i.action_taken||'').replace(/"/g, '""')}","${i.status}"\n`;
+      });
+      downloadCSV(csv, `RIDDOR_Incidents_Log_${new Date().toISOString().slice(0,10)}.csv`);
+      showToast('RIDDOR incident registry exported as CSV!', 'success');
+    }
+
+    function downloadCSV(csv, filename) {
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

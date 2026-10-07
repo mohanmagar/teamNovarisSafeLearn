@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="images/safelearn-icon.svg">
+  <title>SafeLearn - Leaderboard</title>
+  <meta name="description" content="Training Points Leaderboard">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .podium-container { display: flex; justify-content: center; align-items: flex-end; height: 250px; margin: 40px 0 60px; gap: 10px; }
+    .podium { display: flex; flex-direction: column; align-items: center; width: 120px; }
+    .podium-avatar { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; color: #000; margin-bottom: 10px; position: relative; }
+    /* Rank badge replacing emoji crowns */
+    .podium-avatar::after { content: attr(data-rank); position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 9999px; letter-spacing: 0.04em; white-space: nowrap; }
+    .rank-1 .podium-avatar::after { content: '#1'; background: linear-gradient(135deg,#00D4FF,#0284C7); color: #fff; }
+    .rank-2 .podium-avatar::after { content: '#2'; background: linear-gradient(135deg,#94A3B8,#CBD5E1); color: #0F172A; }
+    .rank-3 .podium-avatar::after { content: '#3'; background: linear-gradient(135deg,#1E3A8A,#3B82F6); color: #fff; }
+    .podium-bar { width: 100%; border-radius: 8px 8px 0 0; display: flex; justify-content: center; padding-top: 10px; font-weight: bold; color: #fff; transition: height 1s; }
+    .rank-1 .podium-bar { height: 140px; background: linear-gradient(to top, #0284C7, #00D4FF); }
+    .rank-1 .podium-avatar { background: #00D4FF; color: #061122; }
+    .rank-2 .podium-bar { height: 100px; background: linear-gradient(to top, #475569, #94A3B8); }
+    .rank-2 .podium-avatar { background: #CBD5E1; color: #0F172A; }
+    .rank-3 .podium-bar { height: 70px; background: linear-gradient(to top, #1E3A8A, #3B82F6); }
+    .rank-3 .podium-avatar { background: #3B82F6; color: #fff; }
+    
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+    th, td { padding: 16px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--text-muted); font-weight: 500; }
+    tr:hover { background: rgba(0,212,255,0.03); }
+    .row-highlight { border: 2px solid var(--iris-cyan); background: rgba(0,212,255,0.08) !important; border-radius: 8px; }
+    .badge-Expert { background: rgba(156,39,176,0.2); color: #E1BEE7; border: 1px solid #9C27B0; }
+    .badge-Advanced { background: rgba(33,150,243,0.2); color: #BBDEFB; border: 1px solid #2196F3; }
+    .badge-Certified { background: rgba(76,175,80,0.2); color: #C8E6C9; border: 1px solid #4CAF50; }
+    .badge-Trainee { background: rgba(158,158,158,0.2); color: #F5F5F5; border: 1px solid #9E9E9E; }
+  </style>
+  <link rel="stylesheet" href="css/mobile.css">
+  <script src="js/mobile.js" defer></script>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="dashboard.html" class="navbar-brand">
+      <img src="images/safelearn-icon.svg" alt="SafeLearn logo" style="height:32px; width:auto;">
+      <span style="font-size:1.1rem; font-weight:800; color:var(--text-primary); margin-left:6px;">SafeLearn</span>
+    </a>
+    <div class="navbar-nav">
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+      <a href="game.html" class="nav-link">Games</a>
+      <a href="leaderboard.html" class="nav-link active">Leaderboard</a>
+      <a href="report.html" class="nav-link">Report Incident</a>
+    </div>
+  </nav>
+
+  <div class="container animate-fade-in">
+    <div class="text-center" style="margin-bottom: 40px;">
+      <h1>SafeLearn Leaderboard</h1>
+      <p class="text-muted">Top performers in health & safety training this month</p>
+    </div>
+
+    <div class="glass-card text-center" style="margin-bottom: 40px; border-color: var(--iris-cyan);">
+      <h3 style="margin-bottom: 0;">Your Rank: <span id="user-rank-txt" style="color: var(--iris-cyan);">#4 — 540 XP — Certified</span></h3>
+    </div>
+
+    <div class="podium-container" id="podium-area">
+      <!-- Injected JS -->
+    </div>
+
+    <div class="glass-card table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Name</th>
+            <th>Department</th>
+            <th>XP Points</th>
+            <th>Modules</th>
+            <th>Badge</th>
+          </tr>
+        </thead>
+        <tbody id="lb-body">
+          <!-- Injected JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid-2">
+      <div class="glass-card">
+        <h3>How XP Works</h3>
+        <ul style="padding-left: 20px; color: var(--text-muted); line-height: 2;">
+          <li>Module Completion: +100 to +200 XP</li>
+          <li>Quiz Pass Bonus: +50 XP</li>
+          <li>Perfect Score: +25 XP</li>
+          <li>Streak Bonus: Up to +25 XP</li>
+        </ul>
+      </div>
+      <div class="glass-card">
+        <h3>Rank System</h3>
+        <ul style="padding-left: 20px; color: var(--text-muted); line-height: 2;">
+          <li><span class="badge badge-Expert">Expert</span> 900+ XP</li>
+          <li><span class="badge badge-Advanced">Advanced</span> 500-899 XP</li>
+          <li><span class="badge badge-Certified">Certified</span> 200-499 XP</li>
+          <li><span class="badge badge-Trainee">Trainee</span> 0-199 XP</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    (async () => {
+      const user = await checkAuth();
+      if (!user) return;
+
+      let data;
+      try {
+        data = (await SafeLearnAPI.getLeaderboard()).leaderboard;
+      } catch (err) {
+        showToast('Could not load the leaderboard: ' + err.message, 'error');
+        return;
+      }
+
+      if (data.length === 0) {
+        document.getElementById('podium-area').innerHTML = '<p class="text-muted">No staff have earned XP yet.</p>';
+        return;
+      }
+
+      // Podium (top 3, or fewer if the org has fewer staff)
+      const pContainer = document.getElementById('podium-area');
+      const podiumOrder = [data[1], data[0], data[2]].filter(Boolean); // 2nd, 1st, 3rd
+      podiumOrder.forEach((u) => {
+        const pClass = u.rank === 1 ? 'rank-1' : u.rank === 2 ? 'rank-2' : 'rank-3';
+        pContainer.innerHTML += `
+          <div class="podium ${pClass}">
+            <div class="podium-avatar">${escapeHTML(initials(u.name))}</div>
+            <div style="font-size: 0.8rem; margin-bottom: 4px;">${escapeHTML(u.name.split(' ')[0])}</div>
+            <div class="podium-bar">${u.xp}</div>
+          </div>
+        `;
+      });
+
+      // Table
+      const tbody = document.getElementById('lb-body');
+      const totalTrainingModules = MODULES.length;
+      data.forEach(u => {
+        const isUser = u.id === user.id;
+        tbody.innerHTML += `
+          <tr class="${isUser ? 'row-highlight' : ''}">
+            <td><strong style="color: ${u.rank <= 3 ? 'var(--iris-cyan)' : 'inherit'}">#${u.rank}</strong></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="avatar" style="width:30px; height:30px; font-size:0.8rem;">${escapeHTML(initials(u.name))}</div>
+                ${escapeHTML(u.name)} ${isUser ? '(You)' : ''}
+              </div>
+            </td>
+            <td class="text-muted">${escapeHTML(u.department)}</td>
+            <td style="color: var(--iris-cyan); font-weight: bold;">${u.xp} XP</td>
+            <td>${u.modulesCompleted}/${totalTrainingModules}</td>
+            <td><span class="badge badge-${u.badge}">${u.badge}</span></td>
+          </tr>
+        `;
+
+        if (isUser) {
+          document.getElementById('user-rank-txt').innerText = `#${u.rank} — ${u.xp} XP — ${u.badge}`;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

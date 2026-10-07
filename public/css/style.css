@@ -1,0 +1,552 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ============================================================
+   SafeLearn — Crystal Glass Design System
+   Deep midnight-blue backdrop + frosted-glass panels +
+   iridescent border highlights + aurora animated background.
+   ============================================================ */
+
+:root {
+  /* ── Background depths (Crystal Water Clean) ── */
+  --bg-void:   #061122;   /* Deep pristine aquatic void */
+  --bg-dark:   #0A1B36;   /* Clean crystal water depth */
+  --bg-mid:    #0F254B;   /* Translucent water layer */
+  --bg-raised: #153260;   /* Elevated crystal glass shelf */
+
+  /* ── Crystal water glass surfaces ── */
+  --glass:           rgba(255, 255, 255, 0.055);
+  --glass-hover:     rgba(255, 255, 255, 0.09);
+  --glass-strong:    rgba(255, 255, 255, 0.13);
+  --glass-border:    rgba(148, 223, 255, 0.16);
+  --glass-border-hi: rgba(148, 223, 255, 0.32);
+  --glass-top:       rgba(255, 255, 255, 0.28);
+
+  /* ── Luminous Crystal Water Accents (No AI yellow) ── */
+  --iris-cyan:    #00D4FF;   /* Pure crystal cyan */
+  --iris-aqua:    #38BDF8;   /* Sky-water crystal */
+  --iris-marine:  #0284C7;   /* Deep sapphire */
+  --iris-mint:    #2DD4BF;   /* Sea-foam mint */
+  --iris-blue:    #60A5FA;   /* Azure crystal */
+  --iris-purple:  #818CF8;   /* Soft periwinkle prism */
+
+  /* ── Brand colors (all yellow eliminated; pristine crystal aqua) ── */
+  --accent-cyan:         #00D4FF;
+  --accent-cyan-hover:   #38BDF8;
+  --accent-cyan-soft:    rgba(0, 212, 255, 0.12);
+  --accent-yellow:       #00D4FF;  /* Aliased to crystal cyan to eradicate all legacy yellow */
+  --accent-yellow-hover: #38BDF8;
+  --accent-yellow-soft:  rgba(0, 212, 255, 0.12);
+
+  --surface:             rgba(255, 255, 255, 0.055);
+  --surface-hover:       rgba(255, 255, 255, 0.09);
+  --surface-solid:       #0F254B;
+  --surface-elevated:    #153260;
+
+  --success:      #10B981;
+  --success-soft: rgba(16, 185, 129, 0.14);
+  --danger:       #F43F5E;
+  --danger-soft:  rgba(244, 63, 94, 0.14);
+  --warning:      #38BDF8;
+
+  /* ── Text ── */
+  --text-primary:   #F0F9FF;
+  --text-secondary: #BAE6FD;
+  --text-muted:     #7DD3FC;
+  --text-dim:       #38BDF8;
+
+  /* ── Borders ── */
+  --border:       rgba(148, 223, 255, 0.15);
+  --border-focus: rgba(0, 212, 255, 0.60);
+
+  /* ── Radii ── */
+  --radius-card: 20px;
+  --radius-btn:  12px;
+  --radius-sm:   8px;
+
+  /* ── Shadows (crystal ocean ambient glows) ── */
+  --shadow:
+    0 8px 32px rgba(2, 8, 20, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 0 0 1px rgba(148, 223, 255, 0.12);
+  --shadow-lg:
+    0 24px 70px rgba(2, 8, 20, 0.78),
+    0 0 80px rgba(0, 212, 255, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 0 0 1px rgba(148, 223, 255, 0.20);
+  --shadow-glow-cyan:   0 0 28px rgba(0, 212, 255, 0.40), 0 0 8px rgba(0, 212, 255, 0.25);
+  --shadow-glow-yellow: 0 0 28px rgba(0, 212, 255, 0.40), 0 0 8px rgba(0, 212, 255, 0.25);
+
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Reset ── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Body — crystal water clean backdrop with caustic ripples ── */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-void);
+  background-image:
+    radial-gradient(ellipse 100% 80% at 50% -20%, rgba(0, 212, 255, 0.12), transparent 70%),
+    linear-gradient(180deg, #07152B 0%, #050E1C 100%);
+  color: var(--text-primary);
+  line-height: 1.65;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+}
+
+/* Crystal water caustics & luminous ripples */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 85% 70% at 8% 0%,    rgba(0, 212, 255, 0.16) 0%, transparent 60%),
+    radial-gradient(ellipse 75% 65% at 92% 100%, rgba(2, 132, 199, 0.16) 0%, transparent 60%),
+    radial-gradient(ellipse 65% 55% at 50% 50%,  rgba(45, 212, 191, 0.08) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 40% at 80% 15%,  rgba(56, 189, 248, 0.13) 0%, transparent 55%);
+  animation: water-caustic 20s ease-in-out infinite alternate;
+}
+
+@keyframes water-caustic {
+  0%   { opacity: 1;    transform: scale(1)    translate(0%,    0%);   }
+  33%  { opacity: 0.88; transform: scale(1.03) translate(-1.5%, 1%);   }
+  66%  { opacity: 0.95; transform: scale(0.98) translate(1%,   -0.8%); }
+  100% { opacity: 1.02; transform: scale(1.02) translate(1.2%, -0.5%); }
+}
+
+/* Ensure all content sits above the aurora layer */
+.container, nav, main, header, footer { position: relative; z-index: 1; }
+
+/* ============================================================
+   CRYSTAL GLASS CARDS (Water Clean Reflection)
+   ============================================================ */
+.glass-card {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(8, 27, 54, 0.50) 50%,
+    rgba(0, 212, 255, 0.04) 100%
+  );
+  backdrop-filter: blur(28px) saturate(1.7) brightness(1.06);
+  -webkit-backdrop-filter: blur(28px) saturate(1.7) brightness(1.06);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow);
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+/* Iridescent crystal water top-edge shimmer */
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.55) 30%,
+    rgba(0, 212, 255, 0.75) 55%,
+    rgba(56, 189, 248, 0.50) 75%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* Subtle inner crystal water prism */
+.glass-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-card);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    transparent 40%,
+    transparent 70%,
+    rgba(0, 212, 255, 0.04) 100%
+  );
+  pointer-events: none;
+}
+
+.glass-card:hover {
+  border-color: rgba(148, 223, 255, 0.35);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+h1 { font-size: 2.2rem; }
+h2 { font-size: 1.6rem; }
+h3 { font-size: 1.25rem; }
+
+.text-muted  { color: var(--text-muted); }
+.text-center { text-align: center; }
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: var(--radius-btn);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: var(--transition);
+  border: 1px solid transparent;
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.01em;
+}
+
+/* Glass sheen on all buttons */
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.13) 0%, transparent 55%);
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.btn:hover::before { opacity: 1; }
+.btn:hover { transform: translateY(-2px); }
+
+/* Primary — crystal water sapphire/cyan gradient */
+.btn-primary {
+  background: linear-gradient(135deg, #00D4FF 0%, #0284C7 100%);
+  color: #FFFFFF;
+  font-weight: 700;
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.35), inset 0 1px 0 rgba(255,255,255,0.4);
+  text-shadow: 0 1px 2px rgba(0, 20, 50, 0.4);
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #38BDF8 0%, #00D4FF 100%);
+  box-shadow: 0 0 28px rgba(0, 212, 255, 0.55), inset 0 1px 0 rgba(255,255,255,0.5);
+  color: #FFFFFF;
+}
+
+/* Secondary — frosted glass */
+.btn-secondary {
+  background: linear-gradient(135deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.04) 100%);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  backdrop-filter: blur(10px);
+}
+.btn-secondary:hover {
+  background: linear-gradient(135deg, rgba(0,212,255,0.12) 0%, rgba(0,212,255,0.04) 100%);
+  border-color: rgba(0, 212, 255, 0.45);
+  color: var(--iris-cyan);
+  box-shadow: 0 0 18px rgba(0,212,255,0.18);
+}
+
+/* Danger */
+.btn-danger {
+  background: linear-gradient(135deg, #F87171 0%, #DC2626 100%);
+  color: #fff;
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: 0 4px 18px rgba(248,113,113,0.32);
+}
+.btn-danger:hover {
+  box-shadow: 0 0 28px rgba(248,113,113,0.45);
+  background: linear-gradient(135deg, #FB8080 0%, #EF4444 100%);
+}
+
+/* ============================================================
+   FORMS & INPUTS
+   ============================================================ */
+.form-group  { margin-bottom: 20px; text-align: left; }
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.80rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--radius-btn);
+  background: rgba(3, 15, 34, 0.55);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: var(--transition);
+  outline: none;
+  backdrop-filter: blur(10px);
+}
+.form-control:focus {
+  border-color: var(--iris-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.20), var(--shadow-glow-cyan);
+  background: rgba(4, 20, 46, 0.70);
+}
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+.badge {
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(8px);
+}
+
+.badge-success {
+  background: var(--success-soft);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+.badge-danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid rgba(244, 63, 94, 0.35);
+}
+.badge-warning {
+  background: rgba(56, 189, 248, 0.14);
+  color: #38BDF8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+.badge-xp {
+  background: linear-gradient(135deg, rgba(0,212,255,0.18), rgba(2,132,199,0.14));
+  color: #38BDF8;
+  border: 1px solid rgba(0, 212, 255, 0.40);
+}
+
+/* ============================================================
+   PROGRESS BARS — crystal water shimmer
+   ============================================================ */
+.progress-container {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  height: 8px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+.progress-bar {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.progress-yellow, .progress-aqua {
+  background: linear-gradient(90deg, #00D4FF, #38BDF8, #2DD4BF, #0284C7, #00D4FF);
+  background-size: 300% 100%;
+  animation: iris-shimmer 3.5s linear infinite;
+}
+@keyframes iris-shimmer {
+  0%   { background-position: 0%   0; }
+  100% { background-position: 300% 0; }
+}
+
+/* ============================================================
+   NAVIGATION BAR
+   ============================================================ */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(5, 10, 21, 0.78);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 14px 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Iridescent bottom-edge line on navbar */
+.navbar::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(0, 212, 255, 0.4) 30%,
+    rgba(167, 139, 250, 0.3) 60%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.navbar-nav  { display: flex; gap: 20px; align-items: center; }
+
+.nav-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: var(--transition);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+.nav-link:hover, .nav-link.active { color: var(--iris-cyan); }
+
+.nav-user { display: flex; align-items: center; gap: 12px; }
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--iris-cyan), var(--iris-purple));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.82rem;
+  box-shadow: 0 0 14px rgba(0, 212, 255, 0.35);
+}
+
+/* ============================================================
+   GRID LAYOUTS
+   ============================================================ */
+.container { max-width: 1200px; margin: 0 auto; padding: 36px 5%; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr; gap: 24px; }
+.grid-4 { display: grid; grid-template-columns: 1fr; gap: 20px; }
+
+/* ============================================================
+   RESPONSIVE — Mobile / Tablet / Laptop / Desktop
+   ============================================================ */
+
+/* ── Tiny phones (< 480px) ── */
+@media (max-width: 479px) {
+  h1 { font-size: 1.55rem; }
+  h2 { font-size: 1.25rem; }
+  .container { padding: 20px 4%; }
+  .glass-card { padding: 16px; border-radius: 16px; }
+  .btn { padding: 10px 16px; font-size: 0.88rem; }
+  .tabs { grid-template-columns: 1fr; }
+}
+
+/* ── Mobile phones (480px – 767px) ── */
+@media (max-width: 767px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 4%;
+  }
+  .navbar-nav { width: 100%; flex-wrap: wrap; gap: 10px; }
+  .nav-user   { width: 100%; flex-wrap: wrap; }
+  .glass-card { padding: 18px; }
+  h1 { font-size: 1.75rem; }
+  .grid-2 { grid-template-columns: 1fr !important; }
+  .grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+/* ── Tablet (768px – 1023px) ── */
+@media (min-width: 768px) {
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .container { padding: 32px 5%; }
+}
+
+/* ── Laptop / small desktop (1024px – 1279px) ── */
+@media (min-width: 1024px) {
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .container { padding: 36px 5%; }
+  h1 { font-size: 2.2rem; }
+}
+
+/* ── Wide desktop (1280px+) ── */
+@media (min-width: 1280px) {
+  .container { max-width: 1260px; padding: 40px 32px; }
+}
+
+/* ── Ultra-wide (1600px+) ── */
+@media (min-width: 1600px) {
+  .container { max-width: 1440px; }
+  h1 { font-size: 2.5rem; }
+  .glass-card { padding: 32px; }
+}
+
+/* ============================================================
+   TOAST NOTIFICATIONS
+   ============================================================ */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  background: linear-gradient(135deg, rgba(13, 21, 40, 0.97), rgba(5, 10, 21, 0.99));
+  border: 1px solid var(--glass-border-hi);
+  padding: 14px 20px;
+  border-radius: var(--radius-btn);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.3s ease-out;
+  font-size: 0.9rem;
+  font-weight: 600;
+  backdrop-filter: blur(20px);
+  max-width: 320px;
+}
+.toast.success { border-left: 4px solid var(--success); }
+.toast.error   { border-left: 4px solid var(--danger); }
+.toast.info    { border-left: 4px solid var(--iris-cyan); }
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeIn  { from { opacity: 0; }                               to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes pulse   { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+.animate-fade-in  { animation: fadeIn  0.4s ease-out; }
+.animate-slide-up { animation: slideUp 0.4s ease-out backwards; }
+
+/* ============================================================
+   PRINT
+   ============================================================ */
+@media print {
+  body { background: #fff !important; color: #000 !important; }
+  .no-print { display: none !important; }
+  .glass-card { box-shadow: none !important; border: 1px solid #ccc !important; }
+}

@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="images/safelearn-icon.svg">
+  <title>SafeLearn — Staff Login &amp; Registration</title>
+  <meta name="description" content="SafeLearn — Logistics and Warehousing Safety Learning Solution">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    /* Extra aurora orbs specific to login page */
+    .page-orbs {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      animation: orb-drift 24s infinite alternate ease-in-out;
+    }
+    .orb-1 {
+      width: 480px; height: 480px;
+      background: radial-gradient(circle, rgba(0,212,255,0.22), transparent 70%);
+      top: -140px; left: -120px;
+    }
+    .orb-2 {
+      width: 560px; height: 560px;
+      background: radial-gradient(circle, rgba(2,132,199,0.18), transparent 70%);
+      bottom: -180px; right: -140px;
+      animation-delay: -8s;
+    }
+    .orb-3 {
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(45,212,191,0.12), transparent 70%);
+      top: 45%; right: 10%;
+      animation-delay: -14s;
+    }
+    @keyframes orb-drift {
+      0%   { transform: translate(0, 0) scale(1); }
+      50%  { transform: translate(40px, -30px) scale(1.06); }
+      100% { transform: translate(-30px, 50px) scale(0.96); }
+    }
+
+    /* Login card */
+    .login-card {
+      width: 100%;
+      max-width: 480px;
+      z-index: 1;
+      text-align: center;
+      padding: 40px 36px;
+      margin: 20px auto;
+    }
+
+    /* Crystal tabs */
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr 1fr;
+      margin-bottom: 28px;
+      background: rgba(3, 14, 32, 0.6);
+      border-radius: 14px;
+      padding: 4px;
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(12px);
+      gap: 3px;
+    }
+    .tab {
+      padding: 10px 6px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-radius: 10px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid transparent;
+    }
+    .tab svg { flex-shrink: 0; }
+    .tab.active {
+      color: #FFFFFF;
+      background: linear-gradient(135deg, #00D4FF 0%, #0284C7 100%);
+      font-weight: 700;
+      border-color: rgba(255,255,255,0.3);
+      box-shadow: 0 4px 16px rgba(0,212,255,0.40), inset 0 1px 0 rgba(255,255,255,0.35);
+      text-shadow: 0 1px 2px rgba(0, 20, 50, 0.4);
+    }
+
+    /* Helper / info boxes */
+    .helper-box {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      background: rgba(0, 212, 255, 0.08);
+      border: 1px solid rgba(0, 212, 255, 0.25);
+      border-radius: 12px;
+      padding: 14px 16px;
+      text-align: left;
+      margin-bottom: 22px;
+      line-height: 1.6;
+      backdrop-filter: blur(8px);
+    }
+    .helper-box.yellow, .helper-box.cyan {
+      background: rgba(0, 212, 255, 0.08);
+      border-color: rgba(0, 212, 255, 0.25);
+    }
+    .helper-box.red {
+      background: rgba(248, 113, 113, 0.08);
+      border-color: rgba(248, 113, 113, 0.22);
+    }
+    .helper-box strong { color: var(--iris-cyan); }
+    .helper-box.yellow strong, .helper-box.cyan strong { color: var(--iris-cyan); }
+    .helper-box.red strong { color: var(--danger); }
+
+    /* Shake animation */
+    .shake { animation: shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60%  { transform: translateX(-8px); }
+      40%, 80%  { transform: translateX(8px); }
+    }
+
+    .form-panel { display: none; text-align: left; }
+    .form-panel.active { display: block; }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 4px 0 20px;
+      color: var(--text-dim);
+      font-size: 0.78rem;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--glass-border);
+    }
+  </style>
+  <link rel="stylesheet" href="css/mobile.css">
+  <script src="js/mobile.js" defer></script>
+</head>
+<body>
+  <!-- Page aurora orbs -->
+  <div class="page-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="glass-card login-card animate-fade-in" id="loginCard">
+
+    <!-- Logo -->
+    <div style="margin-bottom: 18px;">
+      <img src="images/safelearn-icon.svg" alt="SafeLearn logo" style="height: 48px; width: auto; filter: drop-shadow(0 0 16px rgba(0,212,255,0.35));">
+    </div>
+    <h2 style="font-size: 1.9rem; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 4px;">
+      SafeLearn
+    </h2>
+    <p class="text-muted" style="margin-bottom: 28px; font-size: 0.88rem;">
+      Logistics and Warehousing Safety Learning Solution
+    </p>
+
+    <!-- Tabs — no emoji, SVG icons only -->
+    <div class="tabs">
+      <div class="tab active" id="tab-employee" onclick="switchView('employee')">
+        <!-- Hard hat icon -->
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 18h20"/><path d="M12 2C8 2 4 5 4 10v2h16v-2c0-5-4-8-8-8z"/></svg>
+        Employee
+      </div>
+      <div class="tab" id="tab-register" onclick="switchView('register')">
+        <!-- Person-plus icon -->
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg>
+        New Staff
+      </div>
+      <div class="tab" id="tab-admin" onclick="switchView('admin')">
+        <!-- Shield icon -->
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Administrator
+      </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- VIEW 1: EMPLOYEE LOGIN                         -->
+    <!-- ============================================== -->
+    <div class="form-panel active" id="panel-employee">
+      <div class="helper-box yellow">
+        <strong>Employee Demo Account</strong><br>
+        Email: <strong style="color:var(--text-primary);">ram@novaris.com</strong> &nbsp;·&nbsp; Password: <strong style="color:var(--text-primary);">staff123</strong><br>
+        <span style="font-size: 0.76rem; color: var(--text-dim); margin-top:4px; display:block;">Or sign in with any account registered via the New Staff tab.</span>
+      </div>
+
+      <form onsubmit="handleEmployeeLogin(event)">
+        <div class="form-group">
+          <label class="form-label" for="emp-email">Work Email</label>
+          <input type="email" id="emp-email" class="form-control" placeholder="e.g. ram@novaris.com" value="ram@novaris.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="emp-password">Password</label>
+          <input type="password" id="emp-password" class="form-control" placeholder="Enter password" value="staff123" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1rem;">
+          Sign In to Training Dashboard
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </form>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- VIEW 2: STAFF REGISTRATION                    -->
+    <!-- ============================================== -->
+    <div class="form-panel" id="panel-register">
+      <div class="helper-box">
+        <strong>New Operative Induction</strong><br>
+        Create your profile to start mandatory health &amp; safety training, log near-misses, and earn completion certificates.
+      </div>
+
+      <form onsubmit="handleStaffRegistration(event)">
+        <div class="form-group">
+          <label class="form-label" for="reg-name">Full Name *</label>
+          <input type="text" id="reg-name" class="form-control" placeholder="e.g. Alex Turner" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reg-dept">Warehouse Department *</label>
+          <select id="reg-dept" class="form-control" required style="background: rgba(0,0,0,0.45);">
+            <option value="Loading Bay">Loading Bay (Inbound / Outbound)</option>
+            <option value="Racking Zone">Racking &amp; High-Bay Storage</option>
+            <option value="Forklift Ops">Forklift &amp; Reach Truck Operations</option>
+            <option value="Dispatch">Dispatch &amp; Order Consolidation</option>
+            <option value="Mezzanine Floor">Mezzanine &amp; Packing Area</option>
+            <option value="Maintenance">Maintenance &amp; Facilities</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reg-email">Work Email *</label>
+          <input type="email" id="reg-email" class="form-control" placeholder="e.g. alex.turner@warehouse.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reg-password">Create Strong Password *</label>
+          <div style="position: relative;">
+            <input type="password" id="reg-password" class="form-control" placeholder="Create a secure password" minlength="8" required oninput="checkPasswordStrength(this.value)" style="padding-right: 42px;">
+            <button type="button" onclick="togglePasswordVisibility('reg-password', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; display: flex; align-items: center;" aria-label="Toggle password visibility">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="pwd-eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+
+          <!-- Live password strength indicator -->
+          <div style="margin-top: 10px; background: rgba(3, 14, 32, 0.5); border: 1px solid var(--glass-border); border-radius: 10px; padding: 12px 14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:0.76rem;">
+              <span style="color:var(--text-muted);">Security Level:</span>
+              <span id="pwd-strength-label" style="font-weight:700; color:var(--text-dim);">Enter password</span>
+            </div>
+            <div style="width:100%; height:5px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden;">
+              <div id="pwd-meter-fill" style="width:0%; height:100%; transition:all 0.3s cubic-bezier(0.4,0,0.2,1); border-radius:3px; background:var(--danger);"></div>
+            </div>
+            <div id="pwd-checklist" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; font-size:0.74rem; color:var(--text-muted); text-align:left;">
+              <div id="chk-len" style="display:flex; align-items:center; gap:6px;"><span>○</span> 8+ characters</div>
+              <div id="chk-upper" style="display:flex; align-items:center; gap:6px;"><span>○</span> Uppercase (A-Z)</div>
+              <div id="chk-lower" style="display:flex; align-items:center; gap:6px;"><span>○</span> Lowercase (a-z)</div>
+              <div id="chk-num" style="display:flex; align-items:center; gap:6px;"><span>○</span> Number (0-9)</div>
+              <div id="chk-sym" style="display:flex; align-items:center; gap:6px; grid-column:span 2;"><span>○</span> Special symbol (!@#$%^&*)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reg-password-confirm">Confirm Password *</label>
+          <div style="position: relative;">
+            <input type="password" id="reg-password-confirm" class="form-control" placeholder="Re-enter your password to confirm" required oninput="checkPasswordMatch()" style="padding-right: 42px;">
+            <button type="button" onclick="togglePasswordVisibility('reg-password-confirm', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; display: flex; align-items: center;" aria-label="Toggle confirm password visibility">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div id="pwd-match-msg" style="margin-top: 6px; font-size: 0.78rem; display: none;"></div>
+        </div>
+
+        <button type="submit" id="reg-submit-btn" class="btn btn-primary" style="width:100%; padding:14px; font-size:1rem; margin-top:6px;">
+          Register &amp; Begin Induction Training
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </form>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- VIEW 3: ADMIN LOGIN                           -->
+    <!-- ============================================== -->
+    <div class="form-panel" id="panel-admin">
+      <div class="helper-box red">
+        <strong>H&amp;S Management Access</strong><br>
+        Administrator: <strong style="color:var(--text-primary);">admin@novaris.com</strong> &nbsp;·&nbsp; Password: <strong style="color:var(--text-primary);">admin123</strong><br>
+        <span style="font-size: 0.76rem; color: var(--text-dim); margin-top:4px; display:block;">Access staff compliance registers, audit logs, and incident reports.</span>
+      </div>
+
+      <form onsubmit="handleAdminLogin(event)">
+        <div class="form-group">
+          <label class="form-label" for="admin-email">Admin Email</label>
+          <input type="email" id="admin-email" class="form-control" value="admin@novaris.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="admin-password">Admin Security PIN</label>
+          <input type="password" id="admin-password" class="form-control" value="admin123" required>
+        </div>
+        <button type="submit" class="btn btn-danger" style="width:100%; padding:14px; font-size:1rem;">
+          Access Compliance Audit Panel
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </button>
+      </form>
+    </div>
+
+    <!-- Error display -->
+    <p id="errorMsg" style="color: var(--danger); font-size: 0.88rem; font-weight: 600; margin-top: 16px; display: none;"></p>
+
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    let activeMode = 'employee';
+
+    function switchView(mode) {
+      activeMode = mode;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('tab-' + mode).classList.add('active');
+      document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('panel-' + mode).classList.add('active');
+      const err = document.getElementById('errorMsg');
+      err.style.display = 'none';
+    }
+
+    function triggerShake(msg) {
+      const card = document.getElementById('loginCard');
+      card.classList.remove('shake');
+      void card.offsetWidth;
+      card.classList.add('shake');
+      const err = document.getElementById('errorMsg');
+      err.innerText = msg;
+      err.style.display = 'block';
+    }
+
+    async function handleEmployeeLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('emp-email').value;
+      const pass  = document.getElementById('emp-password').value;
+      const user  = await authenticateUser(email, pass, 'employee');
+      if (user) {
+        showToast('Login successful! Loading dashboard…', 'success');
+        setTimeout(() => { window.location.href = 'dashboard.html'; }, 500);
+      } else {
+        triggerShake('Invalid email or password. Please check your credentials or register.');
+      }
+    }
+
+    function togglePasswordVisibility(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const isPwd = input.type === 'password';
+      input.type = isPwd ? 'text' : 'password';
+      btn.innerHTML = isPwd
+        ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--iris-cyan)" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+        : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+    }
+
+    function checkPasswordStrength(val) {
+      const hasLen   = val.length >= 8;
+      const hasUpper = /[A-Z]/.test(val);
+      const hasLower = /[a-z]/.test(val);
+      const hasNum   = /[0-9]/.test(val);
+      const hasSym   = /[^A-Za-z0-9]/.test(val);
+
+      const updateChk = (id, ok, text) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = ok
+          ? `<span style="color:var(--success);font-weight:bold;">✓</span> <span style="color:var(--text-primary);">${text}</span>`
+          : `<span style="color:var(--text-dim);">○</span> <span style="color:var(--text-muted);">${text}</span>`;
+      };
+
+      updateChk('chk-len',   hasLen,   '8+ characters');
+      updateChk('chk-upper', hasUpper, 'Uppercase (A-Z)');
+      updateChk('chk-lower', hasLower, 'Lowercase (a-z)');
+      updateChk('chk-num',   hasNum,   'Number (0-9)');
+      updateChk('chk-sym',   hasSym,   'Special symbol (!@#$%^&*)');
+
+      const score = [hasLen, hasUpper, hasLower, hasNum, hasSym].filter(Boolean).length;
+      const fill  = document.getElementById('pwd-meter-fill');
+      const label = document.getElementById('pwd-strength-label');
+
+      if (!val) {
+        fill.style.width = '0%';
+        label.innerText = 'Enter password';
+        label.style.color = 'var(--text-dim)';
+      } else if (score <= 2) {
+        fill.style.width = '25%';
+        fill.style.background = 'var(--danger)';
+        label.innerText = 'Too weak';
+        label.style.color = 'var(--danger)';
+      } else if (score <= 4) {
+        fill.style.width = '65%';
+        fill.style.background = '#38BDF8';
+        label.innerText = 'Good progress';
+        label.style.color = '#38BDF8';
+      } else {
+        fill.style.width = '100%';
+        fill.style.background = 'var(--success)';
+        label.innerText = 'Strong ✓';
+        label.style.color = 'var(--success)';
+      }
+
+      if (document.getElementById('reg-password-confirm').value) {
+        checkPasswordMatch();
+      }
+
+      return score === 5;
+    }
+
+    function checkPasswordMatch() {
+      const pass = document.getElementById('reg-password').value;
+      const confirm = document.getElementById('reg-password-confirm').value;
+      const msg = document.getElementById('pwd-match-msg');
+      if (!msg) return false;
+
+      if (!confirm) {
+        msg.style.display = 'none';
+        return false;
+      }
+
+      msg.style.display = 'block';
+      if (pass === confirm) {
+        msg.innerHTML = '<span style="color:var(--success);font-weight:600;">✓ Passwords match</span>';
+        return true;
+      } else {
+        msg.innerHTML = '<span style="color:var(--danger);font-weight:600;">✗ Passwords do not match</span>';
+        return false;
+      }
+    }
+
+    async function handleStaffRegistration(e) {
+      e.preventDefault();
+      const name  = document.getElementById('reg-name').value.trim();
+      const dept  = document.getElementById('reg-dept').value;
+      const email = document.getElementById('reg-email').value.trim();
+      const pass  = document.getElementById('reg-password').value;
+      const confirm = document.getElementById('reg-password-confirm').value;
+
+      if (!checkPasswordStrength(pass)) {
+        triggerShake('Please fulfill all 5 password security criteria (8+ characters, uppercase, lowercase, number, symbol).');
+        return;
+      }
+
+      if (pass !== confirm) {
+        triggerShake('Passwords do not match. Please confirm your password matches.');
+        document.getElementById('reg-password-confirm').focus();
+        return;
+      }
+
+      const result = await registerUser(name, email, dept, pass, 'employee');
+      if (result.success) {
+        showToast(`Welcome to SafeLearn, ${name.split(' ')[0]}! Profile created.`, 'success');
+        setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
+      } else {
+        triggerShake(result.message);
+      }
+    }
+
+    async function handleAdminLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('admin-email').value;
+      const pass  = document.getElementById('admin-password').value;
+      const admin = await authenticateUser(email, pass, 'admin');
+      if (admin) {
+        showToast('Admin verified. Opening compliance dashboard…', 'success');
+        setTimeout(() => { window.location.href = 'admin.html'; }, 500);
+      } else {
+        triggerShake('Admin verification failed. Check admin security credentials.');
+      }
+    }
+
+    // Skip login if already authenticated
+    (async () => {
+      if (!SafeLearnAPI.getToken()) return;
+      try {
+        const { user } = await SafeLearnAPI.me();
+        cacheUser(user);
+        window.location.href = user.role === 'admin' ? 'admin.html' : 'dashboard.html';
+      } catch { clearSession(); }
+    })();
+  </script>
+</body>
+</html>

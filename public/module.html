@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="images/safelearn-icon.svg">
+  <title>SafeLearn - Module Viewer</title>
+  <meta name="description" content="Training Module Content">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .slide-viewer { min-height: 400px; display: flex; flex-direction: column; justify-content: center; position: relative; }
+    .slide { display: none; animation: fadeIn 0.5s; }
+    .slide.active { display: block; }
+    .slide-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 24px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.2); cursor: pointer; transition: 0.3s; }
+    .dot.active { background: var(--iris-cyan); box-shadow: 0 0 10px rgba(0,212,255,0.5); transform: scale(1.2); }
+    .slide-content { display: grid; grid-template-columns: 2fr 1fr; gap: 40px; align-items: center; }
+    .slide-text h2 { font-size: 2rem; color: var(--iris-cyan); }
+    .slide-text p { font-size: 1.1rem; margin-bottom: 16px; }
+    .slide-icon svg { width: 100%; height: auto; max-width: 200px; color: rgba(255,255,255,0.8); }
+    .controls { display: flex; justify-content: space-between; margin-top: 40px; border-top: 1px solid var(--border); padding-top: 24px; }
+    @media (max-width: 768px) { .slide-content { grid-template-columns: 1fr; } }
+  </style>
+  <link rel="stylesheet" href="css/mobile.css">
+  <script src="js/mobile.js" defer></script>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="dashboard.html" class="navbar-brand">
+      <img src="images/safelearn-icon.svg" alt="SafeLearn logo" style="height:32px; width:auto;">
+      <span style="font-size:1.1rem; font-weight:800; color:var(--text-primary); margin-left:6px;">SafeLearn</span>
+    </a>
+    <div class="navbar-nav">
+      <a href="dashboard.html" class="nav-link">← Dashboard</a>
+      <a href="game.html" class="nav-link">Games</a>
+      <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+      <span class="badge badge-xp" id="mod-xp"></span>
+    </div>
+  </nav>
+
+  <div class="container animate-slide-up" style="max-width: 900px;">
+    <div class="glass-card">
+      <div class="slide-dots" id="dots-container"></div>
+      <div class="text-center text-muted" style="margin-bottom: 24px;" id="slide-counter">Slide 1 of 5</div>
+      
+      <div class="slide-viewer" id="slide-viewer">
+        <!-- Slides injected via JS -->
+      </div>
+
+      <div class="controls">
+        <button class="btn btn-secondary" id="btn-prev" onclick="prevSlide()" style="visibility: hidden;">← Previous</button>
+        <button class="btn btn-primary" id="btn-next" onclick="nextSlide()">Next →</button>
+        <button class="btn btn-primary" id="btn-finish" onclick="goToQuiz()" style="display: none;">Take Quiz →</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    checkAuth();
+    const urlParams = new URLSearchParams(window.location.search);
+    const moduleId = urlParams.get('module');
+    const moduleMeta = MODULES.find(m => m.id === moduleId);
+    
+    if (!moduleMeta) window.location.href = 'dashboard.html';
+    
+    document.getElementById('mod-xp').innerText = `Reward: +${moduleMeta.xpReward} XP`;
+
+    // Slide Data
+    const slidesData = {
+      hazard: [
+        { title: 'Introduction', body: 'What is a hazard? A hazard is any source of potential damage, harm or adverse health effects. Types include physical, chemical, ergonomic, and behavioural. Stats show that 70% of warehouse accidents are preventable through active hazard awareness.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>' },
+        { title: 'Common Warehouse Hazards', body: 'Be on the lookout for: Wet or slippery floors, unsecured loads, blocked emergency exits, poor lighting, and damaged racking. These seemingly small issues can cause major accidents if left unchecked.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>' },
+        { title: 'Legal Requirements', body: 'Under the Health and Safety at Work Act 1974, both employers AND employees have a duty of care. You have a legal obligation to report hazards. The RIDDOR regulations also require mandatory reporting for serious incidents.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>' },
+        { title: 'The STOP Approach', body: 'When you encounter a hazard, use the STOP approach: <br><br>1. <b>S</b>top and recognise the hazard.<br>2. <b>T</b>hink about the risk level.<br>3. <b>O</b>bserve others nearby.<br>4. <b>P</b>rotect yourself and report it.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>' },
+        { title: 'Summary', body: 'Awareness is your best defense. Remember the STOP approach, understand your legal duties, and never ignore a hazard assuming someone else will fix it. You are now ready to take the Hazard Perception quiz.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>' }
+      ],
+      manual: [
+        { title: 'Introduction', body: 'Manual handling causes 33% of all workplace injuries. A manual handling operation is any activity requiring force to lift, lower, carry, push, or pull a load.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 0l-3 3m3-3l3 3m-3 5v8m-4-4h8"></path></svg>' },
+        { title: 'Key Risks', body: 'Poor manual handling leads to Musculoskeletal disorders (MSDs), back injuries, and repetitive strain. Risk factors include heavy loads (over 25kg for men, 16kg for women), awkward postures, and repetitive movement.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>' },
+        { title: 'Legal Requirements', body: 'Manual Handling Operations Regulations 1992 dictate a hierarchy of control: Avoid the lift if possible → Assess the risk if unavoidable → Reduce the risk of injury. Employers must provide adequate training.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>' },
+        { title: 'Safe Lifting Technique (TILE)', body: 'Always assess TILE first: Task, Individual, Load, Environment. When lifting: keep feet shoulder-width apart, bend knees, keep a straight back, grip firmly, lift with your legs, and keep the load close to your body.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>' },
+        { title: 'Summary', body: 'Remember the TILE acronym and the golden rules of safe lifting. Never compromise your posture for speed, and always ask for help if a load is too heavy or awkwardly shaped. Proceed to the quiz.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>' }
+      ],
+      unsafe: [
+        { title: 'Introduction', body: 'Unsafe acts are the leading cause of workplace accidents. According to Heinrich\'s Triangle, for every fatal accident there are 300 near-misses. Reporting these prevents the fatal accidents.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>' },
+        { title: 'Common Unsafe Acts', body: 'Skipping required PPE, taking shortcuts, using damaged equipment, speeding in forklift zones, ignoring warning signs, and the unauthorised use of equipment are prime examples of unsafe acts.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>' },
+        { title: 'Legal Requirements', body: 'Under HASAWA 1974 Section 7, you have a duty to report unsafe conditions. RIDDOR 2013 also makes the reporting of certain near-misses and injuries mandatory. It is both a moral and legal obligation.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>' },
+        { title: 'How to Report a Near-Miss', body: 'Step 1: Make the area safe immediately.<br>Step 2: Record what happened (time, location).<br>Step 3: Submit incident report before end of shift.<br>Step 4: Cooperate with investigation.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>' },
+        { title: 'Summary', body: 'Near-miss reporting saves lives. Adopting a proactive reporting culture ensures that minor incidents do not turn into major tragedies. Let\'s test your knowledge.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>' }
+      ],
+      height: [
+        { title: 'Introduction', body: 'Working at height is one of the biggest causes of workplace fatalities. It is defined as any place where a person could be injured by falling, even if it is at or below ground level.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v20m12-20v20M6 6h12m-12 4h12m-12 4h12m-12 4h12"></path></svg>' },
+        { title: 'Key Hazards', body: 'The primary risks include falling objects from racking, using unstable ladders, overloading mezzanine floors, inadequate edge protection, and rushing while in an elevated position.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>' },
+        { title: 'Legal Requirements', body: 'Under the Work at Height Regulations 2005, the hierarchy is: Avoid working at height → Use existing safe places → Use collective protection (guardrails) → Use PPE (harness).', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>' },
+        { title: 'Safe Practices', body: 'Inspect equipment before use. Never exceed rated load on racking. Always use three points of contact on ladders. Ensure mezzanine capacity is checked, and use toe boards to prevent objects falling.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>' },
+        { title: 'Summary', body: 'Safety at height requires rigorous planning and inspection. Always prioritise collective protection and follow the golden rules. You are now ready for the final quiz.', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>' }
+      ]
+    };
+
+    const slides = slidesData[moduleId];
+    let currentSlide = 0;
+
+    // Render Dots & Slides
+    const dotsContainer = document.getElementById('dots-container');
+    const viewer = document.getElementById('slide-viewer');
+
+    slides.forEach((s, i) => {
+      dotsContainer.innerHTML += `<div class="dot ${i === 0 ? 'active' : ''}" onclick="goToSlide(${i})"></div>`;
+      viewer.innerHTML += `
+        <div class="slide ${i === 0 ? 'active' : ''}" id="slide-${i}">
+          <div class="slide-content">
+            <div class="slide-text">
+              <h2>${s.title}</h2>
+              <p>${s.body}</p>
+            </div>
+            <div class="slide-icon">${s.icon}</div>
+          </div>
+        </div>
+      `;
+    });
+
+    function updateUI() {
+      document.querySelectorAll('.slide').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.dot').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById(`slide-${currentSlide}`).classList.add('active');
+      document.querySelectorAll('.dot')[currentSlide].classList.add('active');
+      
+      document.getElementById('slide-counter').innerText = `Slide ${currentSlide + 1} of 5`;
+      
+      document.getElementById('btn-prev').style.visibility = currentSlide === 0 ? 'hidden' : 'visible';
+      
+      if (currentSlide === slides.length - 1) {
+        document.getElementById('btn-next').style.display = 'none';
+        document.getElementById('btn-finish').style.display = 'inline-flex';
+      } else {
+        document.getElementById('btn-next').style.display = 'inline-flex';
+        document.getElementById('btn-finish').style.display = 'none';
+      }
+    }
+
+    function nextSlide() { if (currentSlide < slides.length - 1) { currentSlide++; updateUI(); } }
+    function prevSlide() { if (currentSlide > 0) { currentSlide--; updateUI(); } }
+    function goToSlide(i) { currentSlide = i; updateUI(); }
+    function goToQuiz() { window.location.href = `quiz.html?module=${moduleId}`; }
+
+  </script>
+</body>
+</html>

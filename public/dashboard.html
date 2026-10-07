@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="images/safelearn-icon.svg">
+  <title>SafeLearn - Dashboard</title>
+  <meta name="description" content="Employee Training Dashboard">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .hero { margin-bottom: 40px; padding: 40px; }
+    .hero h1 { font-size: 2.5rem; }
+    .stat-card { text-align: center; }
+    .stat-card .value { font-size: 2rem; font-weight: bold; color: var(--iris-cyan); }
+    .module-card { display: flex; flex-direction: column; position: relative; border-left: 4px solid var(--iris-cyan); overflow: hidden; }
+    .module-card .header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .module-card .icon { padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.1); display: inline-flex; }
+    .module-card.completed::before { content: '✓'; position: absolute; right: -20px; top: -20px; font-size: 8rem; color: rgba(16,185,129,0.12); z-index: 0; pointer-events: none; }
+  </style>
+  <link rel="stylesheet" href="css/mobile.css">
+  <script src="js/mobile.js" defer></script>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="dashboard.html" class="navbar-brand">
+      <img src="images/safelearn-icon.svg" alt="SafeLearn logo" style="height:32px; width:auto;">
+      <span style="font-size:1.1rem; font-weight:800; color:var(--text-primary); margin-left:6px;">SafeLearn</span>
+    </a>
+    <div class="navbar-nav">
+      <a href="dashboard.html" class="nav-link active">Dashboard</a>
+      <a href="game.html" class="nav-link">Games</a>
+      <a href="scene360.html" class="nav-link">360 Scene</a>
+      <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+      <a href="report.html" class="nav-link">Report Incident</a>
+      <div class="nav-user">
+        <span id="user-xp" class="badge badge-xp">0 XP</span>
+        <div class="avatar" id="user-avatar">JS</div>
+        <span id="user-name">User</span>
+        <button onclick="logout()" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container animate-slide-up">
+    <div class="glass-card hero">
+      <h1 id="greeting">Good day, User!</h1>
+      <p class="text-muted">Complete practical logistics and warehousing safety training at your own pace.</p>
+      <div style="margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span id="rank-badge" class="badge badge-warning">Trainee</span>
+          <span class="text-muted"><span id="xp-counter">0</span> XP</span>
+        </div>
+        <div class="progress-container"><div class="progress-bar progress-yellow" id="xp-progress" style="width: 0%;"></div></div>
+      </div>
+    </div>
+
+    <div class="grid-4" style="margin-bottom: 40px;">
+      <div class="glass-card stat-card">
+        <div class="text-muted">Modules Completed</div>
+        <div class="value" id="stat-modules">0/4</div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="text-muted">Total XP Earned</div>
+        <div class="value" id="stat-xp">0</div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="text-muted">Current Rank</div>
+        <div class="value" id="stat-rank" style="color: var(--text-primary);">Trainee</div>
+      </div>
+      <div class="glass-card stat-card">
+        <div class="text-muted">Next Due</div>
+        <div class="value" style="color: var(--danger); font-size: 1.5rem;">Hazard Perception</div>
+      </div>
+    </div>
+
+    <!-- Games Banner -->
+    <a href="game.html" style="display:flex;align-items:center;gap:20px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.22);border-left:4px solid var(--iris-cyan);border-radius:18px;padding:20px 24px;text-decoration:none;color:inherit;transition:all 0.25s;margin-bottom:24px;backdrop-filter:blur(8px);"
+    onmouseover="this.style.background='rgba(0,212,255,0.10)';this.style.boxShadow='0 8px 32px rgba(0,212,255,0.15)';this.style.borderColor='rgba(0,212,255,0.45)'"
+    onmouseout="this.style.background='rgba(0,212,255,0.05)';this.style.boxShadow='none';this.style.borderColor='rgba(0,212,255,0.22)'">
+      <div style="flex-shrink:0;width:48px;height:48px;border-radius:14px;background:rgba(0,212,255,0.12);border:1px solid rgba(0,212,255,0.25);display:flex;align-items:center;justify-content:center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--iris-cyan)" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="3"/><circle cx="8" cy="12" r="1.5" fill="var(--iris-cyan)"/><path d="M15 10v4M13 12h4" stroke-width="2.5"/></svg>
+      </div>
+      <div style="flex:1;">
+        <h3 style="font-size:15px;font-weight:800;margin-bottom:4px;color:var(--text-primary);">Training Games</h3>
+        <p style="font-size:13px;color:var(--text-muted);">Hazard Hunt · Safe or Unsafe? · Beat the Clock · Scenario Simulator</p>
+      </div>
+      <div style="font-size:14px;font-weight:800;color:var(--iris-cyan);white-space:nowrap;">Earn up to 570 XP</div>
+    </a>
+
+    <a href="challenge.html" style="display:flex;align-items:center;gap:20px;background:rgba(56,189,248,0.05);border:1px solid rgba(56,189,248,0.22);border-left:4px solid var(--iris-aqua);border-radius:18px;padding:20px 24px;text-decoration:none;color:inherit;margin-bottom:32px;transition:all 0.25s;backdrop-filter:blur(8px);"
+    onmouseover="this.style.background='rgba(56,189,248,0.10)';this.style.boxShadow='0 8px 32px rgba(56,189,248,0.12)'"
+    onmouseout="this.style.background='rgba(56,189,248,0.05)';this.style.boxShadow='none'">
+      <div style="flex-shrink:0;width:48px;height:48px;border-radius:14px;background:rgba(56,189,248,0.10);border:1px solid rgba(56,189,248,0.22);display:flex;align-items:center;justify-content:center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--iris-aqua)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div style="flex:1;">
+        <h3 style="font-size:15px;font-weight:800;margin-bottom:4px;color:var(--text-primary);">Two-Player Challenge</h3>
+        <p style="font-size:13px;color:var(--text-muted);">Take turns and compete on safety knowledge.</p>
+      </div>
+      <div style="font-weight:800;color:var(--iris-aqua);white-space:nowrap;">Start Challenge</div>
+    </a>
+
+    <h2 style="margin-bottom: 24px;">Your Training Modules</h2>
+    <div class="grid-2" id="modules-container">
+      <!-- Injected by JS -->
+    </div>
+
+    <div class="glass-card" style="margin-top: 40px; text-align: center; background: rgba(56,189,248,0.06); border-color: rgba(56,189,248,0.25);">
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--iris-aqua)" stroke-width="2.2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <h3 style="color: var(--iris-aqua);">Spotted a hazard?</h3>
+      </div>
+      <p style="color:var(--text-muted);">Log an incident report immediately to keep the warehouse safe.</p>
+      <a href="report.html" class="btn btn-primary" style="margin-top: 16px;">Log Incident Report</a>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    (async () => {
+      const user = await checkAuth();
+      if (!user) return;
+
+      // Greeting
+      const hour = new Date().getHours();
+      const timeOfDay = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
+      document.getElementById('greeting').innerText = `Good ${timeOfDay}, ${user.name.split(' ')[0]}!`;
+
+      // Stats — pulled live from the server, not a local-only counter
+      const progress = await SafeLearnAPI.getProgress();
+      const xp = progress.xp;
+      const rank = progress.rank;
+      const completed = progress.completed; // only the 4 core training modules count towards "modules completed"
+      const trainingModuleCount = completed.filter(id => MODULES.some(m => m.id === id)).length;
+
+      document.getElementById('xp-counter').innerText = xp;
+      document.getElementById('stat-xp').innerText = xp;
+      document.getElementById('rank-badge').innerText = rank;
+      document.getElementById('stat-rank').innerText = rank;
+      document.getElementById('stat-modules').innerText = `${trainingModuleCount}/${MODULES.length}`;
+      document.getElementById('xp-progress').style.width = Math.min((xp / 1000) * 100, 100) + '%';
+      if (document.getElementById('user-xp')) document.getElementById('user-xp').innerText = `${xp} XP`;
+
+      // Render Modules
+      const container = document.getElementById('modules-container');
+      MODULES.forEach(mod => {
+        const isComplete = completed.includes(mod.id);
+        const statusBadge = isComplete ? `<span class="badge badge-success">Completed ✓</span>` : `<span class="badge badge-warning">Not Started</span>`;
+        const btn = isComplete
+          ? `<a href="certificate.html?module=${mod.id}" class="btn btn-secondary">Download Certificate</a>`
+          : `<a href="module.html?module=${mod.id}" class="btn btn-primary">Start Training →</a>`;
+
+        container.innerHTML += `
+          <div class="glass-card module-card ${isComplete ? 'completed' : ''}" style="border-left-color: ${mod.color};">
+            <div class="header">
+              <div class="icon" style="color: ${mod.color}">${mod.icon}</div>
+              <div style="display:flex; gap: 8px;">
+                <span class="badge" style="background: rgba(255,255,255,0.1)">${mod.difficulty}</span>
+                <span class="badge badge-xp">+${mod.xpReward} XP</span>
+              </div>
+            </div>
+            <h3 style="margin-top: 16px;">${escapeHTML(mod.title)}</h3>
+            <p class="text-muted" style="flex: 1; margin-bottom: 24px;">${escapeHTML(mod.description)}</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; z-index: 1;">
+              ${statusBadge}
+              ${btn}
+            </div>
+          </div>
+        `;
+      });
+    })();
+  </script>
+</body>
+</html>

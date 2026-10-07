@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeLearn - Two Player Challenge</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .challenge { max-width: 760px; margin: auto; }
+    .scoreboard { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+    .score { padding: 20px; text-align: center; }
+    .score strong { font-size: 2rem; color: var(--accent-cyan); }
+    .question { font-size: 1.25rem; margin: 20px 0; }
+    .answers { display: grid; gap: 12px; }
+    @media (max-width: 600px) {
+      .navbar { flex-direction: column; align-items: flex-start; }
+      .navbar-nav { flex-wrap: wrap; gap: 12px; }
+      .scoreboard { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+  <link rel="stylesheet" href="css/mobile.css">
+  <script src="js/mobile.js" defer></script>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="dashboard.html" class="navbar-brand">
+      <img src="images/safelearn-icon.svg" alt="SafeLearn logo" style="height:30px;width:auto">
+      <span>SafeLearn</span>
+    </a>
+    <div class="navbar-nav">
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+      <button onclick="logout()" class="btn btn-secondary" style="padding:6px 12px">Logout</button>
+    </div>
+  </nav>
+
+  <main class="container challenge">
+    <h1>Two-player safety challenge</h1>
+    <p class="text-muted">Pass the device between two players. The highest score wins.</p>
+
+    <div class="scoreboard">
+      <div class="glass-card score"><span>Player 1</span><strong id="p1">0</strong></div>
+      <div class="glass-card score"><span>Player 2</span><strong id="p2">0</strong></div>
+    </div>
+
+    <div class="glass-card">
+      <span class="badge badge-xp" id="turn">Player 1's turn</span>
+      <p class="question" id="question"></p>
+      <div class="answers" id="answers"></div>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    checkAuth();
+
+    const qs = [
+      ['What should you do FIRST when you spot a hazard?',
+        ['Ignore it', 'Make the area safe if possible', 'Wait until tomorrow'], 1],
+      ['What does TILE stand for in manual handling?',
+        ['Task, Individual, Load, Environment', 'Transfer, Inspect, Lift, Evaluate', 'Task, Inspect, Lower, Equipment'], 0],
+      ["According to Heinrich's Triangle, how many near-misses occur per fatal accident?",
+        ['30', '100', '300'], 2],
+      ['Which year were the Work at Height Regulations introduced?',
+        ['1992', '1999', '2005'], 2],
+      ['What does the STOP approach stand for?',
+        ['Survey, Test, Observe, Prevent', 'Stop, Think, Observe, Protect', 'Safety, Train, Operate, Plan'], 1],
+      ['Under HASAWA 1974 Section 7, employees must:',
+        ['Only report injuries with lost time', 'Report unsafe conditions and cooperate with safety measures', 'Avoid reporting minor incidents'], 1]
+    ];
+
+    let q = 0;
+    let p = 0;
+    let s = [0, 0];
+
+    function render() {
+      if (q === qs.length) {
+        document.querySelector('.question').textContent =
+          s[0] === s[1] ? 'Draw - play again!' : `Player ${s[0] > s[1] ? 1 : 2} wins!`;
+        document.getElementById('answers').innerHTML =
+          '<a class="btn btn-primary" href="challenge.html">Play again</a>';
+        return;
+      }
+      const x = qs[q];
+      document.getElementById('turn').textContent = `Player ${p + 1}'s turn`;
+      document.getElementById('question').textContent = x[0];
+      document.getElementById('answers').innerHTML =
+        x[1].map((a, i) => `<button class="btn btn-secondary" onclick="answer(${i})">${a}</button>`).join('');
+    }
+
+    function answer(i) {
+      if (i === qs[q][2]) {
+        s[p]++;
+        document.getElementById(`p${p + 1}`).textContent = s[p];
+        showToast('Correct!', 'success');
+      } else {
+        showToast('Not quite.', 'error');
+      }
+      p = 1 - p;
+      q++;
+      render();
+    }
+
+    render();
+  </script>
+</body>
+</html>
